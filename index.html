@@ -27,7 +27,7 @@
         <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-xl border border-slate-700">
             <label for="weekSelect" class="text-sm font-medium text-slate-300">เลือกสัปดาห์:</label>
             <select id="weekSelect" onchange="changeWeek()" class="bg-slate-900 text-blue-400 font-bold text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <!-- โหลดรายการอัตโนมัติ -->
+                <!-- โหลดรายการสัปดาห์ผ่าน JS -->
             </select>
         </div>
     </header>
@@ -63,4 +63,166 @@
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="font-bold text-slate-800 text-base md:text-lg">📈 แนวโน้มจำนวน Ticket และ % Complete SLA</h2>
-                <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Week 26 - Week 3
+                <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Week 26 - Week 38</span>
+            </div>
+            <div class="h-64">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- รายละเอียด Ticket และ Cost Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- การดำเนินงาน Ticket -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 text-sm">
+                    📋 รายละเอียด Ticket (Selected Week)
+                </div>
+                <div class="divide-y divide-slate-100 text-sm">
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Cases Required Emails</span>
+                        <span id="detail-req-email" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Cases Not Required an Email</span>
+                        <span id="detail-noreq-email" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-amber-50/50">
+                        <span class="font-medium text-amber-900">Total cases to be handle</span>
+                        <span id="detail-total-cases" class="font-bold text-amber-600">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Case delay (from SLA)</span>
+                        <span id="detail-delay" class="font-semibold text-red-500">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-blue-50/30">
+                        <span class="font-medium text-blue-900">Work In Progress (WIP)</span>
+                        <span id="detail-wip" class="font-bold text-blue-600">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- รายละเอียดค่าใช้จ่าย AC Cost Tracker -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-emerald-50 border-b border-emerald-100 font-bold text-emerald-900 text-sm flex justify-between items-center">
+                    <span>💵 สรุปค่าใช้จ่าย AC Cost Tracker (PCM)</span>
+                    <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">Overview Sheet</span>
+                </div>
+                <div class="divide-y divide-slate-100 text-sm">
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Total Cost Completed in Wk</span>
+                        <span id="cost-completed" class="font-semibold text-slate-800">฿0.00</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Total Hub (THB)</span>
+                        <span id="cost-hub" class="font-semibold text-slate-800">฿0.00</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-emerald-50/60 bg-emerald-50/30">
+                        <span class="font-bold text-emerald-900">รวมค่าใช้จ่ายประจำสัปดาห์</span>
+                        <span id="cost-total" class="font-bold text-emerald-600 text-base">฿0.00</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // ฐานข้อมูลสถิติและยอดเงิน THB จากไฟล์ Overview
+        const rawData = {
+            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", reqEmail: 11, noReqEmail: 12, totalCases: 23, delay: 22, wip: 0, amount: 72820.00 },
+            "Week 27": { rec: 23, valid: 20, comp: 39, sla: "100.00%", reqEmail: 15, noReqEmail: 6, totalCases: 21, delay: 8, wip: 0, amount: 82527.00 },
+            "Week 28": { rec: 29, valid: 21, comp: 37, sla: "97.92%", reqEmail: 14, noReqEmail: 10, totalCases: 24, delay: 10, wip: 1, amount: 66780.00 },
+            "Week 29": { rec: 42, valid: 31, comp: 33, sla: "100.00%", reqEmail: 18, noReqEmail: 12, totalCases: 30, delay: 10, wip: 0, amount: 55650.00 },
+            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", reqEmail: 12, noReqEmail: 14, totalCases: 26, delay: 5, wip: 1, amount: 53365.00 },
+            "Week 31": { rec: 67, valid: 41, comp: 13, sla: "100.00%", reqEmail: 13, noReqEmail: 17, totalCases: 32, delay: 7, wip: 0, amount: 84904.16 },
+            "Week 32": { rec: 52, valid: 41, comp: 25, sla: "100.00%", reqEmail: 24, noReqEmail: 22, totalCases: 47, delay: 9, wip: 0, amount: 39000.00 },
+            "Week 33": { rec: 37, valid: 23, comp: 18, sla: "98.00%", reqEmail: 17, noReqEmail: 15, totalCases: 32, delay: 6, wip: 1, amount: 110536.00 },
+            "Week 34": { rec: 61, valid: 38, comp: 18, sla: "95.65%", reqEmail: 16, noReqEmail: 10, totalCases: 26, delay: 4, wip: 1, amount: 57254.00 },
+            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", reqEmail: 14, noReqEmail: 21, totalCases: 37, delay: 11, wip: 0, amount: 88074.72 },
+            "Week 36": { rec: 35, valid: 26, comp: 18, sla: "98.55%", reqEmail: 18, noReqEmail: 15, totalCases: 33, delay: 10, wip: 1, amount: 117804.72 },
+            "Week 37": { rec: 62, valid: 40, comp: 21, sla: "100.00%", reqEmail: 25, noReqEmail: 12, totalCases: 37, delay: 8, wip: 0, amount: 30455.00 },
+            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", reqEmail: 19, noReqEmail: 11, totalCases: 30, delay: 5, wip: 2, amount: 83822.43 }
+        };
+
+        const weekSelect = document.getElementById('weekSelect');
+        const weeks = Object.keys(rawData);
+
+        // สร้างรายการสัปดาห์ใน Dropdown
+        weeks.forEach(wk => {
+            const opt = document.createElement('option');
+            opt.value = wk;
+            opt.innerText = wk;
+            if(wk === "Week 38") opt.selected = true;
+            weekSelect.appendChild(opt);
+        });
+
+        // ฟังก์ชันเปลี่ยนข้อมูลตามสัปดาห์ที่เลือก
+        function changeWeek() {
+            const selected = weekSelect.value;
+            const data = rawData[selected];
+
+            if(!data) return;
+
+            document.getElementById('kpi-received').innerText = data.rec;
+            document.getElementById('kpi-valid').innerText = data.valid;
+            document.getElementById('kpi-completed').innerText = data.comp;
+            document.getElementById('kpi-sla').innerText = data.sla;
+            
+            const formattedAmount = '฿' + data.amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('kpi-amount').innerText = formattedAmount;
+
+            document.getElementById('detail-req-email').innerText = data.reqEmail;
+            document.getElementById('detail-noreq-email').innerText = data.noReqEmail;
+            document.getElementById('detail-total-cases').innerText = data.totalCases;
+            document.getElementById('detail-delay').innerText = data.delay;
+            document.getElementById('detail-wip').innerText = data.wip;
+
+            document.getElementById('cost-completed').innerText = formattedAmount;
+            document.getElementById('cost-hub').innerText = formattedAmount;
+            document.getElementById('cost-total').innerText = formattedAmount;
+        }
+
+        // โหลดกราฟเมื่อเปิดหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks,
+                    datasets: [
+                        {
+                            label: 'Ticket Received',
+                            data: weeks.map(w => rawData[w].rec),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: '% Complete SLA',
+                            data: weeks.map(w => parseFloat(rawData[w].sla)),
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            yAxisID: 'y1',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'จำนวนตั๋ว' } },
+                        y1: { position: 'right', min: 0, max: 100, title: { display: true, text: 'เปอร์เซ็นต์ (%)' } }
+                    }
+                }
+            });
+
+            changeWeek();
+        });
+    </script>
+</body>
+</html>
