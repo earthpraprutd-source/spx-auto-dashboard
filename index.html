@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPX Auto - Weekly Report Web App</title>
+    <title>SPX Auto - Weekly Report & Payment Web App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,8 +18,8 @@
         <div class="flex items-center gap-3">
             <div class="bg-blue-600 p-2.5 rounded-xl font-bold text-xl">📊</div>
             <div>
-                <h1 class="text-xl font-bold">SPX Auto - Weekly Maintenance App</h1>
-                <p class="text-xs text-slate-400">ภาพรวมรายงานประสิทธิภาพประจำสัปดาห์ (SLA Dashboard)</p>
+                <h1 class="text-xl font-bold">SPX Auto - Maintenance & Payment Dashboard</h1>
+                <p class="text-xs text-slate-400">ภาพรวมรายงาน Ticket และยอดการชำระเงินตามกำหนดเวลา</p>
             </div>
         </div>
         
@@ -27,7 +27,7 @@
         <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-xl border border-slate-700">
             <label for="weekSelect" class="text-sm font-medium text-slate-300">เลือกสัปดาห์:</label>
             <select id="weekSelect" onchange="changeWeek()" class="bg-slate-900 text-blue-400 font-bold text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <!-- โหลดตัวเลือกสัปดาห์อัตโนมัติ -->
+                <!-- โหลดรายการอัตโนมัติ -->
             </select>
         </div>
     </header>
@@ -35,22 +35,27 @@
     <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
 
         <!-- KPI Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 hover:shadow-md transition-all">
                 <p class="text-xs font-semibold text-slate-400 uppercase">A. Ticket Received</p>
-                <p id="kpi-received" class="text-2xl md:text-3xl font-bold text-slate-800 mt-1">--</p>
+                <p id="kpi-received" class="text-2xl font-bold text-slate-800 mt-1">--</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500 hover:shadow-md transition-all">
                 <p class="text-xs font-semibold text-slate-400 uppercase">B. Total Valid Ticket</p>
-                <p id="kpi-valid" class="text-2xl md:text-3xl font-bold text-amber-600 mt-1">--</p>
+                <p id="kpi-valid" class="text-2xl font-bold text-amber-600 mt-1">--</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-500 hover:shadow-md transition-all">
-                <p class="text-xs font-semibold text-slate-400 uppercase">Case Completed (SLA)</p>
-                <p id="kpi-completed" class="text-2xl md:text-3xl font-bold text-green-600 mt-1">--</p>
+                <p class="text-xs font-semibold text-slate-400 uppercase">Completed (SLA)</p>
+                <p id="kpi-completed" class="text-2xl font-bold text-green-600 mt-1">--</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-purple-500 hover:shadow-md transition-all">
                 <p class="text-xs font-semibold text-slate-400 uppercase">% Complete SLA</p>
-                <p id="kpi-sla" class="text-2xl md:text-3xl font-bold text-purple-600 mt-1">--%</p>
+                <p id="kpi-sla" class="text-2xl font-bold text-purple-600 mt-1">--%</p>
+            </div>
+            <!-- การ์ดจำนวนเงิน -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-600 hover:shadow-md transition-all col-span-2 md:col-span-1">
+                <p class="text-xs font-semibold text-emerald-600 uppercase">💰 ยอดเงินประมาณการ (Est. Amount)</p>
+                <p id="kpi-amount" class="text-2xl font-bold text-emerald-600 mt-1">฿0</p>
             </div>
         </div>
 
@@ -60,63 +65,94 @@
                 <h2 class="font-bold text-slate-800 text-base md:text-lg">📈 แนวโน้มจำนวน Ticket และ % Complete SLA</h2>
                 <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Week 26 - Week 43</span>
             </div>
-            <div class="h-72">
+            <div class="h-64">
                 <canvas id="trendChart"></canvas>
             </div>
         </div>
 
-        <!-- ตารางรายละเอียด -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 text-sm">
-                📋 รายละเอียดหมวดหมู่การดำเนินงาน (Selected Week Detail)
+        <!-- ตารางรายละเอียด Payment Schedule & Ticket Detail -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- การดำเนินงาน Ticket -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 text-sm flex justify-between items-center">
+                    <span>📋 รายละเอียด Ticket (Selected Week)</span>
+                </div>
+                <div class="divide-y divide-slate-100 text-sm">
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Cases Required Emails</span>
+                        <span id="detail-req-email" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Cases Not Required an Email</span>
+                        <span id="detail-noreq-email" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-amber-50/50">
+                        <span class="font-medium text-amber-900">Total cases to be handle</span>
+                        <span id="detail-total-cases" class="font-bold text-amber-600">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">Case delay (from SLA)</span>
+                        <span id="detail-delay" class="font-semibold text-red-500">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-blue-50/30">
+                        <span class="font-medium text-blue-900">Work In Progress (WIP)</span>
+                        <span id="detail-wip" class="font-bold text-blue-600">--</span>
+                    </div>
+                </div>
             </div>
-            <div class="divide-y divide-slate-100 text-sm">
-                <div class="flex justify-between p-3.5 hover:bg-slate-50">
-                    <span class="text-slate-600">Cases Required Emails (PCM / Insurance / Hub Sup)</span>
-                    <span id="detail-req-email" class="font-semibold text-slate-800">--</span>
+
+            <!-- กำหนดการจ่ายเงิน Payment Schedule -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-emerald-50 border-b border-emerald-100 font-bold text-emerald-900 text-sm flex justify-between items-center">
+                    <span>💳 ตารางกำหนดชำระเงิน (Payment Schedule)</span>
+                    <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">Normal / Special</span>
                 </div>
-                <div class="flex justify-between p-3.5 hover:bg-slate-50">
-                    <span class="text-slate-600">Cases Not Required an Email</span>
-                    <span id="detail-noreq-email" class="font-semibold text-slate-800">--</span>
-                </div>
-                <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-amber-50/50">
-                    <span class="font-medium text-amber-900">Total cases to be handle this Wk</span>
-                    <span id="detail-total-cases" class="font-bold text-amber-600">--</span>
-                </div>
-                <div class="flex justify-between p-3.5 hover:bg-slate-50">
-                    <span class="text-slate-600">Case delay (from SLA) but already completed</span>
-                    <span id="detail-delay" class="font-semibold text-red-500">--</span>
-                </div>
-                <div class="flex justify-between p-3.5 hover:bg-slate-50 bg-blue-50/30">
-                    <span class="font-medium text-blue-900">Work In Progress (WIP)</span>
-                    <span id="detail-wip" class="font-bold text-blue-600">--</span>
+                <div class="divide-y divide-slate-100 text-sm">
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">กำหนดจ่าย Normal Process (Sign before pay)</span>
+                        <span id="pay-normal-date" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">กำหนดจ่าย Special Process (Pay before sign)</span>
+                        <span id="pay-special-date" class="font-semibold text-slate-800">--</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-slate-50">
+                        <span class="text-slate-600">สถานะสัญญา (Contract Signing)</span>
+                        <span id="pay-contract-status" class="font-semibold text-green-600">Completed</span>
+                    </div>
+                    <div class="flex justify-between p-3.5 hover:bg-emerald-50/60 bg-emerald-50/30">
+                        <span class="font-bold text-emerald-900">ยอดรวมจ่ายประเมินสุทธิ</span>
+                        <span id="pay-total-amount" class="font-bold text-emerald-600 text-base">฿0</span>
+                    </div>
                 </div>
             </div>
+
         </div>
 
     </main>
 
     <script>
-        // ข้อมูลจริงจากไฟล์ spx auto (Sheet Overview)
+        // ข้อมูลจำลอง Ticket + ยอดเงินชำระจาก Sheet Overview / Payment Schedule
         const rawData = {
-            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", reqEmail: 11, noReqEmail: 12, totalCases: 23, delay: 22, wip: 0 },
-            "Week 27": { rec: 23, valid: 20, comp: 39, sla: "100.00%", reqEmail: 15, noReqEmail: 6, totalCases: 21, delay: 8, wip: 0 },
-            "Week 28": { rec: 29, valid: 21, comp: 37, sla: "97.92%", reqEmail: 14, noReqEmail: 10, totalCases: 24, delay: 10, wip: 1 },
-            "Week 29": { rec: 42, valid: 31, comp: 33, sla: "100.00%", reqEmail: 18, noReqEmail: 12, totalCases: 30, delay: 10, wip: 0 },
-            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", reqEmail: 12, noReqEmail: 14, totalCases: 26, delay: 5, wip: 1 },
-            "Week 31": { rec: 67, valid: 41, comp: 13, sla: "100.00%", reqEmail: 13, noReqEmail: 17, totalCases: 32, delay: 7, wip: 0 },
-            "Week 32": { rec: 52, valid: 41, comp: 25, sla: "100.00%", reqEmail: 24, noReqEmail: 22, totalCases: 47, delay: 9, wip: 0 },
-            "Week 33": { rec: 37, valid: 23, comp: 18, sla: "98.00%", reqEmail: 17, noReqEmail: 15, totalCases: 32, delay: 6, wip: 1 },
-            "Week 34": { rec: 61, valid: 38, comp: 18, sla: "95.65%", reqEmail: 16, noReqEmail: 10, totalCases: 26, delay: 4, wip: 1 },
-            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", reqEmail: 14, noReqEmail: 21, totalCases: 37, delay: 11, wip: 0 },
-            "Week 36": { rec: 35, valid: 26, comp: 18, sla: "98.55%", reqEmail: 18, noReqEmail: 15, totalCases: 33, delay: 10, wip: 1 },
-            "Week 37": { rec: 62, valid: 40, comp: 21, sla: "100.00%", reqEmail: 25, noReqEmail: 12, totalCases: 37, delay: 8, wip: 0 },
-            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", reqEmail: 19, noReqEmail: 11, totalCases: 30, delay: 5, wip: 2 },
-            "Week 39": { rec: 34, valid: 30, comp: 23, sla: "81.25%", reqEmail: 22, noReqEmail: 9, totalCases: 31, delay: 3, wip: 6 },
-            "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", reqEmail: 11, noReqEmail: 16, totalCases: 27, delay: 3, wip: 13 },
-            "Week 41": { rec: 15, valid: 15, comp: 15, sla: "46.88%", reqEmail: 7, noReqEmail: 13, totalCases: 20, delay: 15, wip: 17 },
-            "Week 42": { rec: 0, valid: 0, comp: 12, sla: "44.44%", reqEmail: 0, noReqEmail: 0, totalCases: 0, delay: 12, wip: 15 },
-            "Week 43": { rec: 0, valid: 0, comp: 10, sla: "45.45%", reqEmail: 0, noReqEmail: 0, totalCases: 0, delay: 10, wip: 12 }
+            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", reqEmail: 11, noReqEmail: 12, totalCases: 23, delay: 22, wip: 0, amount: 125000, normDate: "19 Sep 25", specDate: "19 Sep 25" },
+            "Week 27": { rec: 23, valid: 20, comp: 39, sla: "100.00%", reqEmail: 15, noReqEmail: 6, totalCases: 21, delay: 8, wip: 0, amount: 98000, normDate: "26 Sep 25", specDate: "26 Sep 25" },
+            "Week 28": { rec: 29, valid: 21, comp: 37, sla: "97.92%", reqEmail: 14, noReqEmail: 10, totalCases: 24, delay: 10, wip: 1, amount: 105000, normDate: "03 Oct 25", specDate: "03 Oct 25" },
+            "Week 29": { rec: 42, valid: 31, comp: 33, sla: "100.00%", reqEmail: 18, noReqEmail: 12, totalCases: 30, delay: 10, wip: 0, amount: 155000, normDate: "10 Oct 25", specDate: "10 Oct 25" },
+            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", reqEmail: 12, noReqEmail: 14, totalCases: 26, delay: 5, wip: 1, amount: 142000, normDate: "17 Oct 25", specDate: "17 Oct 25" },
+            "Week 31": { rec: 67, valid: 41, comp: 13, sla: "100.00%", reqEmail: 13, noReqEmail: 17, totalCases: 32, delay: 7, wip: 0, amount: 210000, normDate: "24 Oct 25", specDate: "24 Oct 25" },
+            "Week 32": { rec: 52, valid: 41, comp: 25, sla: "100.00%", reqEmail: 24, noReqEmail: 22, totalCases: 47, delay: 9, wip: 0, amount: 185000, normDate: "31 Oct 25", specDate: "31 Oct 25" },
+            "Week 33": { rec: 37, valid: 23, comp: 18, sla: "98.00%", reqEmail: 17, noReqEmail: 15, totalCases: 32, delay: 6, wip: 1, amount: 115000, normDate: "07 Nov 25", specDate: "07 Nov 25" },
+            "Week 34": { rec: 61, valid: 38, comp: 18, sla: "95.65%", reqEmail: 16, noReqEmail: 10, totalCases: 26, delay: 4, wip: 1, amount: 190000, normDate: "14 Nov 25", specDate: "14 Nov 25" },
+            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", reqEmail: 14, noReqEmail: 21, totalCases: 37, delay: 11, wip: 0, amount: 168000, normDate: "21 Nov 25", specDate: "21 Nov 25" },
+            "Week 36": { rec: 35, valid: 26, comp: 18, sla: "98.55%", reqEmail: 18, noReqEmail: 15, totalCases: 33, delay: 10, wip: 1, amount: 130000, normDate: "28 Nov 25", specDate: "28 Nov 25" },
+            "Week 37": { rec: 62, valid: 40, comp: 21, sla: "100.00%", reqEmail: 25, noReqEmail: 12, totalCases: 37, delay: 8, wip: 0, amount: 195000, normDate: "04 Dec 25", specDate: "04 Dec 25" },
+            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", reqEmail: 19, noReqEmail: 11, totalCases: 30, delay: 5, wip: 2, amount: 140000, normDate: "12 Dec 25", specDate: "12 Dec 25" },
+            "Week 39": { rec: 34, valid: 30, comp: 23, sla: "81.25%", reqEmail: 22, noReqEmail: 9, totalCases: 31, delay: 3, wip: 6, amount: 150000, normDate: "19 Dec 25", specDate: "19 Dec 25" },
+            "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", reqEmail: 11, noReqEmail: 16, totalCases: 27, delay: 3, wip: 13, amount: 135000, normDate: "26 Dec 25", specDate: "26 Dec 25" },
+            "Week 41": { rec: 15, valid: 15, comp: 15, sla: "46.88%", reqEmail: 7, noReqEmail: 13, totalCases: 20, delay: 15, wip: 17, amount: 75000, normDate: "02 Jan 26", specDate: "02 Jan 26" },
+            "Week 42": { rec: 0, valid: 0, comp: 12, sla: "44.44%", reqEmail: 0, noReqEmail: 0, totalCases: 0, delay: 12, wip: 15, amount: 60000, normDate: "09 Jan 26", specDate: "09 Jan 26" },
+            "Week 43": { rec: 0, valid: 0, comp: 10, sla: "45.45%", reqEmail: 0, noReqEmail: 0, totalCases: 0, delay: 10, wip: 12, amount: 50000, normDate: "16 Jan 26", specDate: "16 Jan 26" }
         };
 
         const weekSelect = document.getElementById('weekSelect');
@@ -127,7 +163,7 @@
             const opt = document.createElement('option');
             opt.value = wk;
             opt.innerText = wk;
-            if(wk === "Week 40") opt.selected = true; // ตั้งค่าเริ่มต้นที่ Week 40
+            if(wk === "Week 40") opt.selected = true;
             weekSelect.appendChild(opt);
         });
 
@@ -140,17 +176,22 @@
             document.getElementById('kpi-valid').innerText = data.valid;
             document.getElementById('kpi-completed').innerText = data.comp;
             document.getElementById('kpi-sla').innerText = data.sla;
+            document.getElementById('kpi-amount').innerText = '฿' + data.amount.toLocaleString();
 
             document.getElementById('detail-req-email').innerText = data.reqEmail;
             document.getElementById('detail-noreq-email').innerText = data.noReqEmail;
             document.getElementById('detail-total-cases').innerText = data.totalCases;
             document.getElementById('detail-delay').innerText = data.delay;
             document.getElementById('detail-wip').innerText = data.wip;
+
+            document.getElementById('pay-normal-date').innerText = data.normDate;
+            document.getElementById('pay-special-date').innerText = data.specDate;
+            document.getElementById('pay-total-amount').innerText = '฿' + data.amount.toLocaleString();
         }
 
-        // สร้างกราฟ Trend Chart
+        // กราฟ Trend Chart
         const ctx = document.getElementById('trendChart').getContext('2d');
-        const trendChart = new Chart(ctx, {
+        new Chart(ctx, {
             type: 'line',
             data: {
                 labels: weeks,
@@ -184,7 +225,6 @@
             }
         });
 
-        // เรียกใช้งานครั้งแรก
         changeWeek();
     </script>
 </body>
