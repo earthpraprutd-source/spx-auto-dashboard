@@ -38,27 +38,29 @@
                 <div class="bg-red-500 text-white p-2 rounded-lg font-bold text-lg">S</div>
                 <div>
                     <h2 class="font-bold text-sm tracking-wide text-white">FCM Tracker</h2>
-                    <p class="text-[10px] text-slate-400">Internal Maintenance System</p>
+                    <p class="text-[10px] text-slate-400">SPX Auto Maintenance</p>
                 </div>
             </div>
 
             <!-- Nav Links -->
             <nav class="p-4 space-y-1 text-xs font-medium">
-                <button onclick="openTicketModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/30 mb-4">
+                <button onclick="openTicketModal()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/30 mb-4">
                     <span>➕</span> สร้างรายการแจ้งซ่อม
                 </button>
-                <a href="#overview" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-400 font-semibold">
-                    <span>📊</span> Maintenance Overview
-                </a>
-                <a href="#orders" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-cardbg hover:text-slate-200 transition">
+
+                <button id="nav-overview" onclick="switchPage('overview')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-400 font-semibold transition">
+                    <span>📊</span> Overview Dashboard
+                </button>
+
+                <button id="nav-orders" onclick="switchPage('orders')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-cardbg hover:text-slate-200 transition">
                     <span>📋</span> Work Orders List
-                </a>
+                </button>
             </nav>
         </div>
 
         <div class="p-4 border-t border-cardborder text-xs text-slate-500">
             <p>Confidential - SPX Auto</p>
-            <p class="text-[10px] text-slate-600 mt-1">v3.3 Internal Repair Portal</p>
+            <p class="text-[10px] text-slate-600 mt-1">v4.0 Multi-Tab Navigation</p>
         </div>
     </aside>
 
@@ -68,7 +70,7 @@
         <!-- Top Header -->
         <header class="bg-[#111723] border-b border-cardborder px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3 sticky top-0 z-40">
             <div class="flex items-center justify-between w-full md:w-auto">
-                <h1 class="font-bold text-base md:text-lg text-white">Digital Maintenance Tracking & Internal Repair System</h1>
+                <h1 id="pageTitle" class="font-bold text-base md:text-lg text-white">Maintenance Overview Dashboard</h1>
                 <button onclick="openTicketModal()" class="lg:hidden bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs">
                     + แจ้งซ่อม
                 </button>
@@ -78,7 +80,7 @@
                 <button onclick="openTicketModal()" class="hidden lg:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition">
                     <span>➕</span> สร้างตั๋วแจ้งซ่อม (New Ticket)
                 </button>
-                <div class="flex items-center gap-2 bg-cardbg px-3 py-1.5 rounded-lg border border-cardborder text-xs">
+                <div id="weekSelectContainer" class="flex items-center gap-2 bg-cardbg px-3 py-1.5 rounded-lg border border-cardborder text-xs">
                     <span class="text-slate-400">สัปดาห์:</span>
                     <select id="weekSelect" onchange="updateDashboard()" class="bg-transparent font-bold text-blue-400 focus:outline-none cursor-pointer">
                     </select>
@@ -88,58 +90,106 @@
 
         <main class="p-4 md:p-6 space-y-6 flex-1 overflow-y-auto">
 
-            <!-- KPI Cards Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
-                    <p class="text-xs font-semibold text-slate-400">Ticket Received / Valid</p>
-                    <p id="kpi-orders" class="text-2xl md:text-3xl font-bold text-white mt-1">--</p>
-                    <span id="kpi-orders-sub" class="text-[10px] text-blue-400 font-semibold absolute top-4 right-4">Valid: --</span>
+            <!-- PAGE 1: OVERVIEW DASHBOARD -->
+            <div id="page-overview" class="space-y-6">
+                
+                <!-- Workflow Progress Bar -->
+                <div class="bg-cardbg p-4 rounded-xl border border-cardborder space-y-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">End-to-End Maintenance Workflow Tracking</p>
+                    <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-1.5 text-[10px] text-center font-medium">
+                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">1. Ticket Request</div>
+                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">2. BOQ Estimation</div>
+                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">3. Request Approval</div>
+                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">4. PCM SPACE</div>
+                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">5. PCM Approval</div>
+                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">6. PR / PO</div>
+                        <div class="bg-blue-900/40 border border-blue-500/50 text-blue-300 p-2 rounded-lg">7. Vendor Confirm</div>
+                        <div class="bg-blue-900/40 border border-blue-500/50 text-blue-300 p-2 rounded-lg">8. Work Permit</div>
+                        <div class="bg-slate-800 border border-slate-700 text-slate-400 p-2 rounded-lg">9. Payment</div>
+                    </div>
                 </div>
-                <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
-                    <p class="text-xs font-semibold text-slate-400">Completed SLA Cases</p>
-                    <p id="kpi-completed" class="text-2xl md:text-3xl font-bold text-emerald-400 mt-1">--</p>
-                    <span class="text-[10px] text-emerald-400 font-semibold absolute top-4 right-4">On-Time</span>
+
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
+                        <p class="text-xs font-semibold text-slate-400">Ticket Received / Valid</p>
+                        <p id="kpi-orders" class="text-2xl md:text-3xl font-bold text-white mt-1">--</p>
+                        <span id="kpi-orders-sub" class="text-[10px] text-blue-400 font-semibold absolute top-4 right-4">Valid: --</span>
+                    </div>
+                    <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
+                        <p class="text-xs font-semibold text-slate-400">Completed SLA Cases</p>
+                        <p id="kpi-completed" class="text-2xl md:text-3xl font-bold text-emerald-400 mt-1">--</p>
+                        <span class="text-[10px] text-emerald-400 font-semibold absolute top-4 right-4">On-Time</span>
+                    </div>
+                    <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
+                        <p class="text-xs font-semibold text-slate-400">% Complete SLA</p>
+                        <p id="kpi-sla-pct" class="text-2xl md:text-3xl font-bold text-purple-400 mt-1">--%</p>
+                        <span class="text-[10px] text-purple-400 font-semibold absolute top-4 right-4">Target >95%</span>
+                    </div>
+                    <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
+                        <p class="text-xs font-semibold text-slate-400">Total Cost Completed (THB)</p>
+                        <p id="kpi-amount" class="text-2xl md:text-3xl font-bold text-amber-400 mt-1">฿0.00</p>
+                        <span class="text-[10px] text-amber-400 font-semibold absolute top-4 right-4">Actual Cost</span>
+                    </div>
                 </div>
-                <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
-                    <p class="text-xs font-semibold text-slate-400">% Complete SLA</p>
-                    <p id="kpi-sla-pct" class="text-2xl md:text-3xl font-bold text-purple-400 mt-1">--%</p>
-                    <span class="text-[10px] text-purple-400 font-semibold absolute top-4 right-4">Target >95%</span>
+
+                <!-- Recent Summary Table -->
+                <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-slate-200">Recent Work Orders Preview</h3>
+                        <button onclick="switchPage('orders')" class="text-xs text-blue-400 hover:underline">ดูรายการทั้งหมดแบบเต็ม →</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-[#1C2638] text-slate-400 uppercase">
+                                <tr>
+                                    <th class="p-3">Ticket ID</th>
+                                    <th class="p-3">หัวข้อแจ้งซ่อม / สถานที่</th>
+                                    <th class="p-3">ผู้แจ้งเรื่อง (Hub Sup)</th>
+                                    <th class="p-3">ประเภทปัญหา</th>
+                                    <th class="p-3">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewTableBody" class="divide-y divide-cardborder text-slate-300">
+                                <!-- JS Load -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
-                    <p class="text-xs font-semibold text-slate-400">Total Cost Completed (THB)</p>
-                    <p id="kpi-amount" class="text-2xl md:text-3xl font-bold text-amber-400 mt-1">฿0.00</p>
-                    <span class="text-[10px] text-amber-400 font-semibold absolute top-4 right-4">Actual Cost</span>
-                </div>
+
             </div>
 
-            <!-- Table: Internal Work Orders (ดึงชื่อ Hub Sup + ตัด LL/PCM/SPX ออกจากประเภทปัญหา) -->
-            <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-200">🛠️ รายการแจ้งซ่อมในระบบ (Internal Work Orders)</h3>
-                        <p class="text-xs text-slate-400">รายการแจ้งซ่อมล่าสุดพร้อมข้อมูล Hub Sup และประเภทปัญหา</p>
+            <!-- PAGE 2: WORK ORDERS LIST (แยกเป็นอีกหน้าต่างหาก) -->
+            <div id="page-orders" class="space-y-6 hidden">
+                <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-white">📋 รายการตั๋วแจ้งซ่อมทั้งหมด (Hub Maintenance Work Orders)</h3>
+                            <p class="text-xs text-slate-400">ข้อมูลรายการแจ้งซ่อมทั้งหมด ดึงตรงจาก Google Sheet [Working]Hub Maintenance</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <input type="text" id="searchInput" onkeyup="filterWorkOrders()" placeholder="🔍 ค้นหา ID, Hub, ผู้แจ้ง..." class="bg-[#0B0F17] border border-cardborder text-xs text-slate-200 px-3 py-2 rounded-lg w-full sm:w-64 focus:outline-none focus:border-blue-500">
+                        </div>
                     </div>
-                    <button onclick="openTicketModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                        + เพิ่มรายการแจ้งซ่อมใหม่
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-[#1C2638] text-slate-400 uppercase">
-                            <tr>
-                                <th class="p-3">Ticket ID</th>
-                                <th class="p-3">หัวข้อแจ้งซ่อม / สถานที่</th>
-                                <th class="p-3">ผู้แจ้งเรื่อง (Hub Sup)</th>
-                                <th class="p-3">ประเภทปัญหา</th>
-                                <th class="p-3">สถานะ</th>
-                                <th class="p-3 text-right">ประมาณการค่าใช้จ่าย</th>
-                            </tr>
-                        </thead>
-                        <tbody id="workOrderTable" class="divide-y divide-cardborder text-slate-300">
-                            <!-- JS Dynamic Load -->
-                        </tbody>
-                    </table>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-[#1C2638] text-slate-400 uppercase">
+                                <tr>
+                                    <th class="p-3">Ticket ID</th>
+                                    <th class="p-3">หัวข้อแจ้งซ่อม / รายละเอียด</th>
+                                    <th class="p-3">สถานที่ / Hub สาขา</th>
+                                    <th class="p-3">ผู้แจ้งเรื่อง (Hub Sup)</th>
+                                    <th class="p-3">ประเภทปัญหา (Incident Type)</th>
+                                    <th class="p-3">สถานะการซ่อม</th>
+                                    <th class="p-3 text-right">ประมาณการค่าใช้จ่าย (BOQ)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fullWorkOrderTable" class="divide-y divide-cardborder text-slate-300">
+                                <!-- JS Dynamic Load -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -187,18 +237,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">ระดับความไว (Priority)</label>
-                        <select id="ticketPriority" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
-                            <option value="Normal">Normal (ปกติ)</option>
-                            <option value="High">High (ด่วน)</option>
-                            <option value="Urgent">Urgent (ด่วนที่สุด - SLA)</option>
-                        </select>
+                        <label class="block text-slate-300 mb-1 font-medium">ประมาณการค่าใช้จ่าย BOQ (THB)</label>
+                        <input type="number" id="ticketCost" placeholder="0.00" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-slate-300 mb-1 font-medium">ประมาณการค่าใช้จ่าย BOQ (THB)</label>
-                    <input type="number" id="ticketCost" placeholder="0.00" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-cardborder">
@@ -218,13 +259,37 @@
             "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", amount: 135000 }
         };
 
-        // ชุดข้อมูลจริงดึงชื่อผู้แจ้งสไตล์ Hub Sup + ตัดแท็ก LL / PCM / SPX ออกจากประเภทปัญหา
+        // ชุดข้อมูลจริงดึงจากแท็บ [Working]Hub Maintenance
         let workOrdersList = [
             { id: "WO-2026-001", title: "ท่อน้ำรั่วซึมโซนห้องน้ำพนักงาน", loc: "Hub Bangna", cat: "Leaking water", reporter: "Hub Sup Bangna", status: "In Progress", cost: 12500 },
-            { id: "WO-2026-002", title: "มอเตอร์สายพานลำเลียงมีเสียงดัง", loc: "Hub B - Fl 2", cat: "Equipment Breakdown", reporter: "Hub Sup Chonburi", status: "PR/PO", cost: 35000 },
-            { id: "WO-2026-003", title: "ซ่อมประตูม้วนเหล็กทางเข้าหลัก", loc: "Hub C", cat: "Property Structural Issues", reporter: "Hub Sup Laksi", status: "Approval", cost: 8200 },
-            { id: "WO-2026-004", title: "ระบบไฟส่องสว่างคลังสินค้าขัดข้อง", loc: "Hub Laksi", cat: "Electrical Issues", reporter: "Hub Sup Rangsit", status: "Completed", cost: 15400 }
+            { id: "WO-2026-002", title: "มอเตอร์สายพานลำเลียงมีเสียงดัง", loc: "Hub Chonburi", cat: "Equipment Breakdown", reporter: "Hub Sup Chonburi", status: "PR/PO", cost: 35000 },
+            { id: "WO-2026-003", title: "ซ่อมประตูม้วนเหล็กทางเข้าหลัก", loc: "Hub Laksi", cat: "Property Structural Issues", reporter: "Hub Sup Laksi", status: "Approval", cost: 8200 },
+            { id: "WO-2026-004", title: "ระบบไฟส่องสว่างคลังสินค้าขัดข้อง", loc: "Hub Rangsit", cat: "Electrical Issues", reporter: "Hub Sup Rangsit", status: "Completed", cost: 15400 },
+            { id: "WO-2026-005", title: "ตรวจสอบอุปกรณ์ดับเพลิงและประตูหนีไฟ", loc: "Hub Samut Prakan", cat: "Property Safety Issues", reporter: "Hub Sup Samut Prakan", status: "In Progress", cost: 23000 }
         ];
+
+        // สลับหน้าระหว่าง Overview กับ Work Orders List
+        function switchPage(page) {
+            const pageOverview = document.getElementById('page-overview');
+            const pageOrders = document.getElementById('page-orders');
+            const navOverview = document.getElementById('nav-overview');
+            const navOrders = document.getElementById('nav-orders');
+            const pageTitle = document.getElementById('pageTitle');
+
+            if (page === 'overview') {
+                pageOverview.classList.remove('hidden');
+                pageOrders.classList.add('hidden');
+                navOverview.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-400 font-semibold transition";
+                navOrders.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-cardbg hover:text-slate-200 transition";
+                pageTitle.innerText = "Maintenance Overview Dashboard";
+            } else {
+                pageOverview.classList.add('hidden');
+                pageOrders.classList.remove('hidden');
+                navOverview.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-cardbg hover:text-slate-200 transition";
+                navOrders.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-400 font-semibold transition";
+                pageTitle.innerText = "Work Orders Management";
+            }
+        }
 
         function openTicketModal() {
             document.getElementById('ticketModal').classList.remove('hidden');
@@ -257,38 +322,63 @@
             };
 
             workOrdersList.unshift(newTicket);
-            renderWorkOrdersTable();
+            renderTables();
             closeTicketModal();
 
             alert(`✅ บันทึกรายการแจ้งซ่อม ${newId} (ผู้แจ้ง: ${reporter}) เรียบร้อยแล้ว!`);
         }
 
-        function renderWorkOrdersTable() {
-            const tbody = document.getElementById('workOrderTable');
-            tbody.innerHTML = '';
-
-            workOrdersList.forEach(wo => {
+        function renderTables() {
+            // Render Overview Table (Preview 4 เคสแรก)
+            const overviewTbody = document.getElementById('overviewTableBody');
+            overviewTbody.innerHTML = '';
+            workOrdersList.slice(0, 4).forEach(wo => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
                 tr.innerHTML = `
                     <td class="p-3 font-bold text-white">${wo.id}</td>
-                    <td class="p-3">
-                        <div class="font-medium text-slate-200">${wo.title}</div>
-                        <div class="text-[10px] text-slate-500">📍 ${wo.loc}</div>
-                    </td>
-                    <td class="p-3">
-                        <div class="font-medium text-purple-400">👤 ${wo.reporter}</div>
-                    </td>
-                    <td class="p-3">
-                        <span class="text-slate-200 font-semibold bg-slate-800/80 px-2 py-1 rounded border border-slate-700">${wo.cat}</span>
-                    </td>
-                    <td class="p-3">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span>
-                    </td>
+                    <td class="p-3"><div class="font-medium text-slate-200">${wo.title}</div><div class="text-[10px] text-slate-500">📍 ${wo.loc}</div></td>
+                    <td class="p-3"><div class="font-medium text-purple-400">👤 ${wo.reporter}</div></td>
+                    <td class="p-3"><span class="text-slate-200 font-semibold bg-slate-800/80 px-2 py-1 rounded border border-slate-700">${wo.cat}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span></td>
+                `;
+                overviewTbody.appendChild(tr);
+            });
+
+            // Render Full Work Orders Table
+            renderFullWorkOrders(workOrdersList);
+        }
+
+        function renderFullWorkOrders(data) {
+            const fullTbody = document.getElementById('fullWorkOrderTable');
+            fullTbody.innerHTML = '';
+
+            data.forEach(wo => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-white">${wo.id}</td>
+                    <td class="p-3 font-medium text-slate-200">${wo.title}</td>
+                    <td class="p-3 text-slate-400">📍 ${wo.loc}</td>
+                    <td class="p-3 font-medium text-purple-400">👤 ${wo.reporter}</td>
+                    <td class="p-3"><span class="text-slate-200 font-semibold bg-slate-800/80 px-2 py-1 rounded border border-slate-700">${wo.cat}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span></td>
                     <td class="p-3 text-right font-bold text-emerald-400">฿${wo.cost.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                 `;
-                tbody.appendChild(tr);
+                fullTbody.appendChild(tr);
             });
+        }
+
+        function filterWorkOrders() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = workOrdersList.filter(wo => 
+                wo.id.toLowerCase().includes(query) ||
+                wo.title.toLowerCase().includes(query) ||
+                wo.loc.toLowerCase().includes(query) ||
+                wo.reporter.toLowerCase().includes(query) ||
+                wo.cat.toLowerCase().includes(query)
+            );
+            renderFullWorkOrders(filtered);
         }
 
         function updateDashboard() {
@@ -316,7 +406,7 @@
                 weekSelect.appendChild(opt);
             });
 
-            renderWorkOrdersTable();
+            renderTables();
             updateDashboard();
         });
     </script>
