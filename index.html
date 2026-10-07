@@ -60,7 +60,7 @@
 
         <div class="p-4 border-t border-cardborder text-xs text-slate-500">
             <p>Confidential - SPX Auto</p>
-            <p class="text-[10px] text-slate-600 mt-1">v4.0 Multi-Tab Navigation</p>
+            <p class="text-[10px] text-slate-600 mt-1">v4.1 Red Header Sheets Integration</p>
         </div>
     </aside>
 
@@ -92,23 +92,6 @@
 
             <!-- PAGE 1: OVERVIEW DASHBOARD -->
             <div id="page-overview" class="space-y-6">
-                
-                <!-- Workflow Progress Bar -->
-                <div class="bg-cardbg p-4 rounded-xl border border-cardborder space-y-2">
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">End-to-End Maintenance Workflow Tracking</p>
-                    <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-1.5 text-[10px] text-center font-medium">
-                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">1. Ticket Request</div>
-                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">2. BOQ Estimation</div>
-                        <div class="bg-purple-900/40 border border-purple-500/50 text-purple-300 p-2 rounded-lg">3. Request Approval</div>
-                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">4. PCM SPACE</div>
-                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">5. PCM Approval</div>
-                        <div class="bg-emerald-900/40 border border-emerald-500/50 text-emerald-300 p-2 rounded-lg">6. PR / PO</div>
-                        <div class="bg-blue-900/40 border border-blue-500/50 text-blue-300 p-2 rounded-lg">7. Vendor Confirm</div>
-                        <div class="bg-blue-900/40 border border-blue-500/50 text-blue-300 p-2 rounded-lg">8. Work Permit</div>
-                        <div class="bg-slate-800 border border-slate-700 text-slate-400 p-2 rounded-lg">9. Payment</div>
-                    </div>
-                </div>
-
                 <!-- KPI Cards Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-cardbg p-4 rounded-xl border border-cardborder relative overflow-hidden">
@@ -133,7 +116,7 @@
                     </div>
                 </div>
 
-                <!-- Recent Summary Table -->
+                <!-- Recent Summary Table Preview -->
                 <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-sm font-bold text-slate-200">Recent Work Orders Preview</h3>
@@ -143,11 +126,11 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-[#1C2638] text-slate-400 uppercase">
                                 <tr>
-                                    <th class="p-3">Ticket ID</th>
-                                    <th class="p-3">หัวข้อแจ้งซ่อม / สถานที่</th>
-                                    <th class="p-3">ผู้แจ้งเรื่อง (Hub Sup)</th>
-                                    <th class="p-3">ประเภทปัญหา</th>
-                                    <th class="p-3">สถานะ</th>
+                                    <th class="p-3">Ticket No.</th>
+                                    <th class="p-3">วันที่แจ้งเรื่อง (Timestamp)</th>
+                                    <th class="p-3">Hub Code / Location</th>
+                                    <th class="p-3">ผู้แจ้งเรื่อง (E-mail)</th>
+                                    <th class="p-3">ระดับความเร่งด่วน</th>
                                 </tr>
                             </thead>
                             <tbody id="overviewTableBody" class="divide-y divide-cardborder text-slate-300">
@@ -156,33 +139,34 @@
                         </table>
                     </div>
                 </div>
-
             </div>
 
-            <!-- PAGE 2: WORK ORDERS LIST (แยกเป็นอีกหน้าต่างหาก) -->
+            <!-- PAGE 2: WORK ORDERS LIST (ตารางโครงสร้างตรงตาม Sheet แถบสีแดง) -->
             <div id="page-orders" class="space-y-6 hidden">
                 <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div>
                             <h3 class="text-base font-bold text-white">📋 รายการตั๋วแจ้งซ่อมทั้งหมด (Hub Maintenance Work Orders)</h3>
-                            <p class="text-xs text-slate-400">ข้อมูลรายการแจ้งซ่อมทั้งหมด ดึงตรงจาก Google Sheet [Working]Hub Maintenance</p>
+                            <p class="text-xs text-slate-400">ดึงข้อมูลคอลัมน์หลักตรงจาก Google Sheet [Working]Hub Maintenance</p>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <input type="text" id="searchInput" onkeyup="filterWorkOrders()" placeholder="🔍 ค้นหา ID, Hub, ผู้แจ้ง..." class="bg-[#0B0F17] border border-cardborder text-xs text-slate-200 px-3 py-2 rounded-lg w-full sm:w-64 focus:outline-none focus:border-blue-500">
+                            <input type="text" id="searchInput" onkeyup="filterWorkOrders()" placeholder="🔍 ค้นหา Ticket No, E-mail, Hub..." class="bg-[#0B0F17] border border-cardborder text-xs text-slate-200 px-3 py-2 rounded-lg w-full sm:w-64 focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-[#1C2638] text-slate-400 uppercase">
+                            <thead class="bg-red-950/80 border-b border-red-800/50 text-red-200 uppercase font-bold">
                                 <tr>
-                                    <th class="p-3">Ticket ID</th>
-                                    <th class="p-3">หัวข้อแจ้งซ่อม / รายละเอียด</th>
-                                    <th class="p-3">สถานที่ / Hub สาขา</th>
-                                    <th class="p-3">ผู้แจ้งเรื่อง (Hub Sup)</th>
-                                    <th class="p-3">ประเภทปัญหา (Incident Type)</th>
-                                    <th class="p-3">สถานะการซ่อม</th>
-                                    <th class="p-3 text-right">ประมาณการค่าใช้จ่าย (BOQ)</th>
+                                    <th class="p-3 whitespace-nowrap">Ticket No.</th>
+                                    <th class="p-3 whitespace-nowrap">Timestamp</th>
+                                    <th class="p-3 whitespace-nowrap">E-mail address (ผู้แจ้ง)</th>
+                                    <th class="p-3 whitespace-nowrap">Tel. Number</th>
+                                    <th class="p-3 whitespace-nowrap">Hub Code / Location</th>
+                                    <th class="p-3 whitespace-nowrap text-center">ระดับความเร่งด่วน</th>
+                                    <th class="p-3 whitespace-nowrap">อุปกรณ์/ตำแหน่งที่เสียหาย</th>
+                                    <th class="p-3 whitespace-nowrap">สาเหตุความเสียหาย</th>
+                                    <th class="p-3 whitespace-nowrap text-center">จำนวน (ชิ้น)</th>
                                 </tr>
                             </thead>
                             <tbody id="fullWorkOrderTable" class="divide-y divide-cardborder text-slate-300">
@@ -207,38 +191,45 @@
             </div>
 
             <form id="repairForm" onsubmit="handleCreateTicket(event)" class="space-y-3.5 text-xs">
-                <div>
-                    <label class="block text-slate-300 mb-1 font-medium">หัวข้อการแจ้งซ่อม / รายละเอียดปัญหา *</label>
-                    <input type="text" id="ticketTitle" required placeholder="เช่น ท่อน้ำรั่วซึม บริเวณห้องน้ำชั้น 2, ไฟดับบางจุด" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
-                </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">สถานที่ / Hub สาขา *</label>
-                        <input type="text" id="ticketLocation" required placeholder="เช่น Hub Bangna, Hub Laksi" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                        <label class="block text-slate-300 mb-1 font-medium">E-mail Address ผู้แจ้ง *</label>
+                        <input type="email" id="ticketEmail" required placeholder="user@spxexpress.com" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">ผู้แจ้งเรื่อง (Hub Sup) *</label>
-                        <input type="text" id="ticketReporter" required placeholder="เช่น Hub Sup Bangna, ธนกฤต (Hub Sup)" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                        <label class="block text-slate-300 mb-1 font-medium">เบอร์โทรศัพท์ (Tel Number) *</label>
+                        <input type="text" id="ticketTel" required placeholder="08XXXXXXXX" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">ประเภทปัญหา (Incident Type) *</label>
-                        <select id="ticketCategory" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
-                            <option value="Leaking water">Leaking water</option>
-                            <option value="Property Structural Issues">Property Structural Issues</option>
-                            <option value="Electrical Issues">Electrical Issues</option>
-                            <option value="Property Safety Issues">Property Safety Issues</option>
-                            <option value="Equipment Breakdown">Equipment Breakdown</option>
-                            <option value="Water//Equipment">Water//Equipment</option>
-                            <option value="Other Equipment">Other Equipment</option>
+                        <label class="block text-slate-300 mb-1 font-medium">Hub code / Shop code *</label>
+                        <input type="text" id="ticketHub" required placeholder="เช่น ASDAO-B, HPKNG-D" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 mb-1 font-medium">ระดับความเร่งด่วน *</label>
+                        <select id="ticketPriority" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
                         </select>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1 font-medium">อุปกรณ์/ตำแหน่งที่เสียหาย *</label>
+                    <input type="text" id="ticketItem" required placeholder="เช่น หลอดไฟโคมไฮเบย์, ปลั๊กไฟ" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-slate-300 mb-1 font-medium">สาเหตุความเสียหาย *</label>
+                        <input type="text" id="ticketCause" required placeholder="เช่น หลอดไฟดับ, ชำรุดตามอายุการใช้งาน" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">ประมาณการค่าใช้จ่าย BOQ (THB)</label>
-                        <input type="number" id="ticketCost" placeholder="0.00" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                        <label class="block text-slate-300 mb-1 font-medium">จำนวน (ชิ้น)</label>
+                        <input type="number" id="ticketQty" value="1" min="1" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
@@ -259,16 +250,17 @@
             "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", amount: 135000 }
         };
 
-        // ชุดข้อมูลจริงดึงจากแท็บ [Working]Hub Maintenance
+        // ชุดข้อมูลดึงข้อมูลจริงอ้างอิงตรงจากภาพ Google Sheet (คอลัมน์สีแดง)
         let workOrdersList = [
-            { id: "WO-2026-001", title: "ท่อน้ำรั่วซึมโซนห้องน้ำพนักงาน", loc: "Hub Bangna", cat: "Leaking water", reporter: "Hub Sup Bangna", status: "In Progress", cost: 12500 },
-            { id: "WO-2026-002", title: "มอเตอร์สายพานลำเลียงมีเสียงดัง", loc: "Hub Chonburi", cat: "Equipment Breakdown", reporter: "Hub Sup Chonburi", status: "PR/PO", cost: 35000 },
-            { id: "WO-2026-003", title: "ซ่อมประตูม้วนเหล็กทางเข้าหลัก", loc: "Hub Laksi", cat: "Property Structural Issues", reporter: "Hub Sup Laksi", status: "Approval", cost: 8200 },
-            { id: "WO-2026-004", title: "ระบบไฟส่องสว่างคลังสินค้าขัดข้อง", loc: "Hub Rangsit", cat: "Electrical Issues", reporter: "Hub Sup Rangsit", status: "Completed", cost: 15400 },
-            { id: "WO-2026-005", title: "ตรวจสอบอุปกรณ์ดับเพลิงและประตูหนีไฟ", loc: "Hub Samut Prakan", cat: "Property Safety Issues", reporter: "Hub Sup Samut Prakan", status: "In Progress", cost: 23000 }
+            { id: "CM-HUB04743", time: "28/09/2026", email: "bad.a-dae@spxexpress.com", tel: "0980464454", hub: "ASDAO-B", priority: "High", item: "หลอดไฟโคมไฮเบย์ (จำนวน 6 ดวง)", cause: "หลอดไฟเสีย", qty: 6 },
+            { id: "CM-HUB04744", time: "28/09/2026", email: "rujipas.han@spxexpress.com", tel: "0877665432", hub: "HPKNG-D", priority: "High", item: "หลอดไฟ", cause: "ยิปหลอดไฟ LED ชำรุดตามอายุ", qty: 2 },
+            { id: "CM-HUB04745", time: "30/09/2026", email: "nueng.panawan@spxexpress.com", tel: "0985172889", hub: "HBPLI-A", priority: "High", item: "พัดลม", cause: "ปลั๊กไฟเปิดไม่ติด", qty: 3 },
+            { id: "CM-HUB04746", time: "30/09/2026", email: "nattakan.thangsa@spxexpress.com", tel: "0983619018", hub: "ADENC", priority: "High", item: "สวิตช์ไฟ 2 ทิศทาง", cause: "ด้วยสวิตช์ไฟเกิดสายไฟไหม้", qty: 2 },
+            { id: "CM-HUB04747", time: "30/09/2026", email: "lit.hayisala@spxexpress.com", tel: "0845438958", hub: "AYALA-B", priority: "High", item: "ประตูบานเลื่อนหน้าบ้าน 2", cause: "กลอนประตู LH ชำรุด", qty: 2 },
+            { id: "CM-HUB04748", time: "30/09/2026", email: "wood.poungsom@spxexpress.com", tel: "0960244752", hub: "ALUKA-B", priority: "High", item: "ตาชั่งหลุดเสียหาย", cause: "หน้าต่างหลุดบาน ตกราง หล่นแตกเสียหาย", qty: 4 },
+            { id: "CM-HUB04749", time: "01/10/2026", email: "yui.jansomba@spxexpress.com", tel: "0940051613", hub: "ANRUE", priority: "High", item: "ประตูม้วนหน้าบ้านชั้น 1 มีเสียงดัง", cause: "ลูกล้อทางเดินตกราง", qty: 1 }
         ];
 
-        // สลับหน้าระหว่าง Overview กับ Work Orders List
         function switchPage(page) {
             const pageOverview = document.getElementById('page-overview');
             const pageOrders = document.getElementById('page-orders');
@@ -303,49 +295,55 @@
         function handleCreateTicket(event) {
             event.preventDefault();
 
-            const title = document.getElementById('ticketTitle').value;
-            const loc = document.getElementById('ticketLocation').value;
-            const reporter = document.getElementById('ticketReporter').value || "Hub Sup";
-            const cat = document.getElementById('ticketCategory').value;
-            const cost = parseFloat(document.getElementById('ticketCost').value) || 0;
+            const email = document.getElementById('ticketEmail').value;
+            const tel = document.getElementById('ticketTel').value;
+            const hub = document.getElementById('ticketHub').value;
+            const priority = document.getElementById('ticketPriority').value;
+            const item = document.getElementById('ticketItem').value;
+            const cause = document.getElementById('ticketCause').value;
+            const qty = parseInt(document.getElementById('ticketQty').value) || 1;
 
-            const newId = `WO-2026-00${workOrdersList.length + 1}`;
+            const now = new Date();
+            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            const newId = `CM-HUB0${4750 + workOrdersList.length}`;
 
             const newTicket = {
                 id: newId,
-                title: title,
-                loc: loc,
-                cat: cat,
-                reporter: reporter,
-                status: "Ticket Request",
-                cost: cost
+                time: timeStr,
+                email: email,
+                tel: tel,
+                hub: hub,
+                priority: priority,
+                item: item,
+                cause: cause,
+                qty: qty
             };
 
             workOrdersList.unshift(newTicket);
             renderTables();
             closeTicketModal();
 
-            alert(`✅ บันทึกรายการแจ้งซ่อม ${newId} (ผู้แจ้ง: ${reporter}) เรียบร้อยแล้ว!`);
+            alert(`✅ บันทึกรายการแจ้งซ่อม ${newId} (ผู้แจ้ง: ${email}) เรียบร้อยแล้ว!`);
         }
 
         function renderTables() {
-            // Render Overview Table (Preview 4 เคสแรก)
+            // Render Overview Table Preview
             const overviewTbody = document.getElementById('overviewTableBody');
             overviewTbody.innerHTML = '';
-            workOrdersList.slice(0, 4).forEach(wo => {
+            workOrdersList.slice(0, 5).forEach(wo => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
                 tr.innerHTML = `
                     <td class="p-3 font-bold text-white">${wo.id}</td>
-                    <td class="p-3"><div class="font-medium text-slate-200">${wo.title}</div><div class="text-[10px] text-slate-500">📍 ${wo.loc}</div></td>
-                    <td class="p-3"><div class="font-medium text-purple-400">👤 ${wo.reporter}</div></td>
-                    <td class="p-3"><span class="text-slate-200 font-semibold bg-slate-800/80 px-2 py-1 rounded border border-slate-700">${wo.cat}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span></td>
+                    <td class="p-3 text-slate-400">${wo.time}</td>
+                    <td class="p-3 font-semibold text-blue-400">${wo.hub}</td>
+                    <td class="p-3 text-slate-300">📧 ${wo.email}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${wo.priority === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${wo.priority}</span></td>
                 `;
                 overviewTbody.appendChild(tr);
             });
 
-            // Render Full Work Orders Table
+            // Render Full Work Orders Table (เหมือนใน Google Sheet สีแดง)
             renderFullWorkOrders(workOrdersList);
         }
 
@@ -355,15 +353,19 @@
 
             data.forEach(wo => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
+                tr.className = "hover:bg-slate-800/50 transition border-b border-cardborder";
                 tr.innerHTML = `
-                    <td class="p-3 font-bold text-white">${wo.id}</td>
-                    <td class="p-3 font-medium text-slate-200">${wo.title}</td>
-                    <td class="p-3 text-slate-400">📍 ${wo.loc}</td>
-                    <td class="p-3 font-medium text-purple-400">👤 ${wo.reporter}</td>
-                    <td class="p-3"><span class="text-slate-200 font-semibold bg-slate-800/80 px-2 py-1 rounded border border-slate-700">${wo.cat}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span></td>
-                    <td class="p-3 text-right font-bold text-emerald-400">฿${wo.cost.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <td class="p-3 font-bold text-white whitespace-nowrap">${wo.id}</td>
+                    <td class="p-3 text-slate-400 whitespace-nowrap">${wo.time}</td>
+                    <td class="p-3 text-slate-200 whitespace-nowrap font-medium">📧 ${wo.email}</td>
+                    <td class="p-3 text-slate-400 whitespace-nowrap">📞 ${wo.tel}</td>
+                    <td class="p-3 font-bold text-blue-400 whitespace-nowrap">${wo.hub}</td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <span class="px-2.5 py-1 rounded text-[10px] font-bold ${wo.priority === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${wo.priority}</span>
+                    </td>
+                    <td class="p-3 text-slate-200 font-medium">${wo.item}</td>
+                    <td class="p-3 text-slate-400">${wo.cause}</td>
+                    <td class="p-3 text-center font-bold text-emerald-400">${wo.qty}</td>
                 `;
                 fullTbody.appendChild(tr);
             });
@@ -373,10 +375,10 @@
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = workOrdersList.filter(wo => 
                 wo.id.toLowerCase().includes(query) ||
-                wo.title.toLowerCase().includes(query) ||
-                wo.loc.toLowerCase().includes(query) ||
-                wo.reporter.toLowerCase().includes(query) ||
-                wo.cat.toLowerCase().includes(query)
+                wo.email.toLowerCase().includes(query) ||
+                wo.hub.toLowerCase().includes(query) ||
+                wo.item.toLowerCase().includes(query) ||
+                wo.cause.toLowerCase().includes(query)
             );
             renderFullWorkOrders(filtered);
         }
