@@ -61,7 +61,7 @@
 
         <div class="p-4 border-t border-cardborder text-xs text-slate-500">
             <p>Confidential - SPX Auto</p>
-            <p class="text-[10px] text-slate-600 mt-1">v3.0 Internal Repair Portal</p>
+            <p class="text-[10px] text-slate-600 mt-1">v3.1 Internal Repair Portal</p>
         </div>
     </aside>
 
@@ -132,29 +132,12 @@
                 </div>
             </div>
 
-            <!-- Main Charts Row 1 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-3">
-                    <h3 class="text-sm font-bold text-slate-200">Actual vs Estimated Cost (THB)</h3>
-                    <div class="h-60 w-full">
-                        <canvas id="costChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-3">
-                    <h3 class="text-sm font-bold text-slate-200">Realization Rate Trend (%)</h3>
-                    <div class="h-60 w-full">
-                        <canvas id="realizationChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Table: Internal Work Orders (รายการแจ้งซ่อมทั้งหมด) -->
+            <!-- Table: Internal Work Orders (รวมคอลัมน์ผู้แจ้งเรื่อง) -->
             <div class="bg-cardbg p-5 rounded-xl border border-cardborder space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
                         <h3 class="text-sm font-bold text-slate-200">🛠️ รายการแจ้งซ่อมในระบบ (Internal Work Orders)</h3>
-                        <p class="text-xs text-slate-400">รายการแจ้งซ่อมล่าสุดที่ถูกสร้างและติดตามสถานะ</p>
+                        <p class="text-xs text-slate-400">รายการแจ้งซ่อมล่าสุดพร้อมข้อมูลผู้แจ้งและสถานที่</p>
                     </div>
                     <button onclick="openTicketModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                         + เพิ่มรายการแจ้งซ่อมใหม่
@@ -167,8 +150,8 @@
                             <tr>
                                 <th class="p-3">Ticket ID</th>
                                 <th class="p-3">หัวข้อแจ้งซ่อม / สถานที่</th>
+                                <th class="p-3">ผู้แจ้งเรื่อง (Reporter)</th>
                                 <th class="p-3">ประเภทปัญหากับทีม</th>
-                                <th class="p-3">ผู้แจ้ง</th>
                                 <th class="p-3">สถานะ</th>
                                 <th class="p-3 text-right">ประมาณการค่าใช้จ่าย</th>
                             </tr>
@@ -205,8 +188,8 @@
                         <input type="text" id="ticketLocation" required placeholder="เช่น Hub Bangna, Hub B - Fl 2" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-slate-300 mb-1 font-medium">ผู้แจ้งเรื่อง *</label>
-                        <input type="text" id="ticketReporter" required placeholder="ชื่อผู้แจ้งเรื่อง" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                        <label class="block text-slate-300 mb-1 font-medium">ผู้แจ้งเรื่อง (ชื่อ-นามสกุล / Hub Sup) *</label>
+                        <input type="text" id="ticketReporter" required placeholder="เช่น สมชาย ใจดี (Hub Sup)" class="w-full bg-[#0B0F17] border border-cardborder rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
@@ -256,23 +239,20 @@
     </div>
 
     <script>
-        // ข้อมูลหลักสัปดาห์จาก spx auto
         const rawData = {
-            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", amount: 72820, estAmount: 85000 },
-            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", amount: 53365, estAmount: 65000 },
-            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", amount: 88074, estAmount: 99000 },
-            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", amount: 83822, estAmount: 101000 },
-            "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", amount: 135000, estAmount: 165000 }
+            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", amount: 72820 },
+            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", amount: 53365 },
+            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", amount: 88074 },
+            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", amount: 83822 },
+            "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", amount: 135000 }
         };
 
-        // รายการแจ้งซ่อมในระบบ (เริ่มต้น)
+        // ตัวอย่างรายการแจ้งซ่อมพร้อมชื่อผู้แจ้งเรื่อง
         let workOrdersList = [
-            { id: "WO-2026-001", title: "ท่อน้ำรั่วซึมโซนห้องน้ำพนักงาน", loc: "Hub Bangna", cat: "Leaking water", team: "PCM", reporter: "สมชาย ใจดี", status: "In Progress", cost: 12500 },
+            { id: "WO-2026-001", title: "ท่อน้ำรั่วซึมโซนห้องน้ำพนักงาน", loc: "Hub Bangna", cat: "Leaking water", team: "PCM", reporter: "สมชาย ใจดี (Hub Sup)", status: "In Progress", cost: 12500 },
             { id: "WO-2026-002", title: "มอเตอร์สายพานลำเลียงมีเสียงดัง", loc: "Hub B - Fl 2", cat: "Equipment Breakdown", team: "PCM", reporter: "วิชัย ช่างเครื่อง", status: "PR/PO", cost: 35000 },
             { id: "WO-2026-003", title: "ซ่อมประตูม้วนเหล็กทางเข้าหลัก", loc: "Hub C", cat: "Property Structural Issues", team: "LL", reporter: "อนันต์ รักษาความปลอดภัย", status: "Approval", cost: 8200 }
         ];
-
-        let costChart, realizationChart;
 
         function openTicketModal() {
             document.getElementById('ticketModal').classList.remove('hidden');
@@ -310,7 +290,7 @@
             renderWorkOrdersTable();
             closeTicketModal();
 
-            alert(`✅ สร้างรายการแจ้งซ่อมรหัส ${newId} เรียบร้อยแล้ว!`);
+            alert(`✅ บันทึกการแจ้งซ่อมรหัส ${newId} (โดยผู้แจ้ง: ${reporter}) เรียบร้อยแล้ว!`);
         }
 
         function renderWorkOrdersTable() {
@@ -327,50 +307,18 @@
                         <div class="text-[10px] text-slate-500">📍 ${wo.loc}</div>
                     </td>
                     <td class="p-3">
+                        <div class="font-medium text-blue-400">👤 ${wo.reporter}</div>
+                    </td>
+                    <td class="p-3">
                         <span class="text-slate-300 font-medium">${wo.cat}</span>
                         <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded font-semibold ${wo.team === 'PCM' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-amber-900/60 text-amber-300'}">${wo.team}</span>
                     </td>
-                    <td class="p-3 text-slate-400">${wo.reporter}</td>
                     <td class="p-3">
                         <span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-500/20 text-blue-400 border-blue-500/30">${wo.status}</span>
                     </td>
                     <td class="p-3 text-right font-bold text-emerald-400">฿${wo.cost.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                 `;
                 tbody.appendChild(tr);
-            });
-        }
-
-        function initCharts() {
-            const weeks = Object.keys(rawData);
-
-            const ctxCost = document.getElementById('costChart').getContext('2d');
-            costChart = new Chart(ctxCost, {
-                type: 'bar',
-                data: {
-                    labels: weeks,
-                    datasets: [
-                        { label: 'Estimated (BOQ)', data: weeks.map(w => rawData[w].estAmount), backgroundColor: '#312E81' },
-                        { label: 'Actual Cost', data: weeks.map(w => rawData[w].amount), backgroundColor: '#818CF8' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } } }
-            });
-
-            const ctxReal = document.getElementById('realizationChart').getContext('2d');
-            realizationChart = new Chart(ctxReal, {
-                type: 'line',
-                data: {
-                    labels: weeks,
-                    datasets: [{
-                        label: 'Realization Rate (%)',
-                        data: [85.6, 82.1, 88.9, 83.0, 81.8],
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } } }
             });
         }
 
@@ -399,7 +347,6 @@
                 weekSelect.appendChild(opt);
             });
 
-            initCharts();
             renderWorkOrdersTable();
             updateDashboard();
         });
