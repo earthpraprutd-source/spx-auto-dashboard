@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPX Auto - Maintenance, Cost & Team Tracker</title>
+    <title>SPX Auto - Maintenance, Cost & Type Breakdown</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Header / Navbar (Responsive) -->
+    <!-- Header / Navbar -->
     <header class="bg-slate-900 text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -21,14 +21,14 @@
                     <div class="bg-blue-600 p-2 sm:p-2.5 rounded-xl font-bold text-lg sm:text-xl">📊</div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold leading-tight">SPX Auto Dashboard</h1>
-                        <p class="text-xs text-slate-400">LL vs PCM Maintenance & Cost Tracker</p>
+                        <p class="text-xs text-slate-400">LL vs PCM Maintenance, Cost & Incident Type</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Dropdown สัปดาห์ -->
+            <!-- Dropdown เลือกสัปดาห์ -->
             <div class="flex items-center gap-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
-                <span class="text-xs font-medium text-slate-300 pl-2">สัปดาห์:</span>
+                <span class="text-xs font-medium text-slate-300 pl-2">เลือกสัปดาห์:</span>
                 <select id="weekSelect" onchange="updateDashboard()" class="bg-slate-900 text-blue-400 font-bold text-xs sm:text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 </select>
             </div>
@@ -38,7 +38,7 @@
     <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 w-full">
 
-        <!-- Filter Selector Bar (LL vs PCM vs ALL) -->
+        <!-- Filter Selector Bar -->
         <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
             <span class="text-xs sm:text-sm font-semibold text-slate-600">มุมมองหมวดหมู่ความรับผิดชอบ (Team Responsibility):</span>
             <div class="flex bg-slate-100 p-1 rounded-lg w-full sm:w-auto">
@@ -50,25 +50,68 @@
 
         <!-- KPI Cards Grid -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 hover:shadow-md transition-all">
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
                 <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Ticket Received</p>
                 <p id="kpi-received" class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">--</p>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500 hover:shadow-md transition-all">
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
                 <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Valid Ticket</p>
                 <p id="kpi-valid" class="text-xl sm:text-2xl font-bold text-amber-600 mt-1">--</p>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-500 hover:shadow-md transition-all">
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-500">
                 <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed (SLA)</p>
                 <p id="kpi-completed" class="text-xl sm:text-2xl font-bold text-green-600 mt-1">--</p>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-purple-500 hover:shadow-md transition-all">
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-purple-500">
                 <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">% Complete SLA</p>
                 <p id="kpi-sla" class="text-xl sm:text-2xl font-bold text-purple-600 mt-1">--%</p>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-600 hover:shadow-md transition-all col-span-2 md:col-span-1">
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-600 col-span-2 md:col-span-1">
                 <p class="text-[10px] sm:text-xs font-semibold text-emerald-600 uppercase tracking-wider">💰 Cost Completed (THB)</p>
                 <p id="kpi-amount" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">฿0.00</p>
+            </div>
+        </div>
+
+        <!-- Section: Incident Type Breakdown Table (ส่วนใหม่ที่กดเข้าไปดู Type ได้) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🔍</span>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-base">จำแนกตามประเภทปัญหา (AC Cost Tracker Breakdown)</h3>
+                        <p class="text-xs text-slate-400">กดดูรายละเอียดจำนวนเคสและค่าใช้จ่ายของแต่ละ Incident Type ในสัปดาห์นี้</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="typeFilter" onchange="renderTypeTable()" class="bg-slate-800 text-xs sm:text-sm text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="ALL">แสดงประเภทปัญหาทั้งหมด</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead class="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
+                        <tr>
+                            <th class="py-3 px-4">ประเภทปัญหา (Incident Type)</th>
+                            <th class="py-3 px-4 text-center">จำนวนเคส (Cases)</th>
+                            <th class="py-3 px-4 text-right">ค่าใช้จ่ายรวม (THB)</th>
+                            <th class="py-3 px-4 text-right">สัดส่วนค่าใช้จ่าย (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="typeTableBody" class="divide-y divide-slate-100">
+                        <!-- โหลดข้อมูลผ่าน JS -->
+                    </tbody>
+                    <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                        <tr>
+                            <td class="py-3 px-4 text-slate-700">ยอดรวมทั้งหมด (Total)</td>
+                            <td id="typeTotalCases" class="py-3 px-4 text-center text-slate-800">0</td>
+                            <td id="typeTotalCost" class="py-3 px-4 text-right text-emerald-600">฿0.00</td>
+                            <td class="py-3 px-4 text-right text-slate-600">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
 
@@ -76,80 +119,270 @@
         <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
                 <h2 class="font-bold text-slate-800 text-sm sm:text-base">📈 กราฟแนวโน้มเปรียบเทียบการดำเนินงาน</h2>
-                <span class="text-[11px] bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Week 26 - Week 38</span>
+                <span class="text-[11px] bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Week 26 - Week 40</span>
             </div>
             <div class="h-56 sm:h-72 w-full relative">
                 <canvas id="trendChart"></canvas>
             </div>
         </div>
 
-        <!-- รายละเอียดเปรียบเทียบ PCM vs LL -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            
-            <!-- การดำเนินงาน PCM Team -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-3.5 sm:p-4 bg-indigo-50 border-b border-indigo-100 font-bold text-indigo-900 text-xs sm:text-sm flex justify-between items-center">
-                    <span>🛠️ หมวดงาน PCM (Property & Asset Management)</span>
-                    <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-medium">Internal</span>
-                </div>
-                <div class="divide-y divide-slate-100 text-xs sm:text-sm">
-                    <div class="flex justify-between p-3 hover:bg-slate-50">
-                        <span class="text-slate-600">Cases Completed in Wk [PCM]</span>
-                        <span id="pcm-cases" class="font-semibold text-slate-800">--</span>
-                    </div>
-                    <div class="flex justify-between p-3 hover:bg-slate-50">
-                        <span class="text-slate-600">AC Cost Tracker (THB)</span>
-                        <span id="pcm-cost" class="font-semibold text-indigo-600">฿0.00</span>
-                    </div>
-                    <div class="flex justify-between p-3 hover:bg-slate-50 bg-indigo-50/30">
-                        <span class="font-medium text-indigo-900">สัดส่วนในสัปดาห์นี้</span>
-                        <span id="pcm-ratio" class="font-bold text-indigo-700">--%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- การดำเนินงาน LL (Landlord) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-3.5 sm:p-4 bg-amber-50 border-b border-amber-100 font-bold text-amber-900 text-xs sm:text-sm flex justify-between items-center">
-                    <span>🏢 หมวดงาน LL (Landlord / ผู้ให้เช่า)</span>
-                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">External / Lessor</span>
-                </div>
-                <div class="divide-y divide-slate-100 text-xs sm:text-sm">
-                    <div class="flex justify-between p-3 hover:bg-slate-50">
-                        <span class="text-slate-600">Cases Completed in Wk [LL]</span>
-                        <span id="ll-cases" class="font-semibold text-slate-800">--</span>
-                    </div>
-                    <div class="flex justify-between p-3 hover:bg-slate-50">
-                        <span class="text-slate-600">LL Cost / Claim (THB)</span>
-                        <span id="ll-cost" class="font-semibold text-amber-600">฿0.00</span>
-                    </div>
-                    <div class="flex justify-between p-3 hover:bg-slate-50 bg-amber-50/30">
-                        <span class="font-medium text-amber-900">สัดส่วนในสัปดาห์นี้</span>
-                        <span id="ll-ratio" class="font-bold text-amber-700">--%</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
     </main>
 
     <script>
-        // ฐานข้อมูลแยกจำแนก PCM และ LL จากหน้า Overview
+        // รายการประเภทปัญหาทั้งหมดจากหน้า Overview
+        const incidentTypesList = [
+            "Leaking water",
+            "Property Structural Issues",
+            "Electrical Issues",
+            "Property Safety Issues",
+            "Animal Issues",
+            "Facilities",
+            "MEA/PEA/PWA",
+            "CCTV",
+            "Equipment Breakdown",
+            "Environment",
+            "Electrical//Equipment",
+            "Water//Equipment",
+            "Other Equipment"
+        ];
+
+        // ฐานข้อมูลสถิติ + Breakdown ยอดเงิน/เคส ของแต่ละ Incident Type
         const rawData = {
-            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", amount: 72820.00, pcmCases: 14, pcmCost: 72820.00, llCases: 0, llCost: 0 },
-            "Week 27": { rec: 23, valid: 20, comp: 39, sla: "100.00%", amount: 82527.00, pcmCases: 14, pcmCost: 82527.00, llCases: 25, llCost: 0 },
-            "Week 28": { rec: 29, valid: 21, comp: 37, sla: "97.92%", amount: 66780.00, pcmCases: 13, pcmCost: 66780.00, llCases: 24, llCost: 0 },
-            "Week 29": { rec: 42, valid: 31, comp: 33, sla: "100.00%", amount: 55650.00, pcmCases: 8, pcmCost: 55650.00, llCases: 25, llCost: 0 },
-            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", amount: 53365.00, pcmCases: 12, pcmCost: 53365.00, llCases: 8, llCost: 0 },
-            "Week 31": { rec: 67, valid: 41, comp: 13, sla: "100.00%", amount: 84904.16, pcmCases: 22, pcmCost: 84904.16, llCases: 0, llCost: 0 },
-            "Week 32": { rec: 52, valid: 41, comp: 25, sla: "100.00%", amount: 39000.00, pcmCases: 8, pcmCost: 38000.00, llCases: 17, llCost: 1000.00 },
-            "Week 33": { rec: 37, valid: 23, comp: 18, sla: "98.00%", amount: 110536.00, pcmCases: 17, pcmCost: 110536.00, llCases: 1, llCost: 0 },
-            "Week 34": { rec: 61, valid: 38, comp: 18, sla: "95.65%", amount: 57254.00, pcmCases: 13, pcmCost: 57254.00, llCases: 5, llCost: 0 },
-            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", amount: 88074.72, pcmCases: 13, pcmCost: 77074.72, llCases: 14, llCost: 11000.00 },
-            "Week 36": { rec: 35, valid: 26, comp: 18, sla: "98.55%", amount: 117804.72, pcmCases: 14, pcmCost: 117804.72, llCases: 4, llCost: 0 },
-            "Week 37": { rec: 62, valid: 40, comp: 21, sla: "100.00%", amount: 30455.00, pcmCases: 12, pcmCost: 30455.00, llCases: 9, llCost: 0 },
-            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", amount: 83822.43, pcmCases: 10, pcmCost: 83822.43, llCases: 17, llCost: 0 }
+            "Week 26": { rec: 34, valid: 26, comp: 14, sla: "100.00%", amount: 72820.00, pcmCases: 14, pcmCost: 72820.00, llCases: 0, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 1, cost: 1900.00 },
+                    "Property Structural Issues": { cases: 1, cost: 24610.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 2, cost: 9000.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 4, cost: 14360.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 5, cost: 18950.00 },
+                    "Water//Equipment": { cases: 0, cost: 0.00 },
+                    "Other Equipment": { cases: 1, cost: 4000.00 }
+                }
+            },
+            "Week 27": { rec: 23, valid: 20, comp: 39, sla: "100.00%", amount: 82527.00, pcmCases: 14, pcmCost: 82527.00, llCases: 25, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 1, cost: 1200.00 },
+                    "Electrical Issues": { cases: 1, cost: 2250.00 },
+                    "Property Safety Issues": { cases: 3, cost: 36000.00 },
+                    "Animal Issues": { cases: 1, cost: 1200.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 1, cost: 1000.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 3, cost: 35050.00 },
+                    "Water//Equipment": { cases: 2, cost: 927.00 },
+                    "Other Equipment": { cases: 2, cost: 4900.00 }
+                }
+            },
+            "Week 28": { rec: 29, valid: 21, comp: 37, sla: "97.92%", amount: 66780.00, pcmCases: 13, pcmCost: 66780.00, llCases: 24, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 1, cost: 1000.00 },
+                    "Electrical Issues": { cases: 1, cost: 5000.00 },
+                    "Property Safety Issues": { cases: 0, cost: 0.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 1, cost: 7000.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 1, cost: 700.00 },
+                    "Environment": { cases: 1, cost: 2500.00 },
+                    "Electrical//Equipment": { cases: 5, cost: 47355.00 },
+                    "Water//Equipment": { cases: 2, cost: 2825.00 },
+                    "Other Equipment": { cases: 1, cost: 400.00 }
+                }
+            },
+            "Week 29": { rec: 42, valid: 31, comp: 33, sla: "100.00%", amount: 55650.00, pcmCases: 8, pcmCost: 55650.00, llCases: 25, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 1, cost: 23000.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 3, cost: 13450.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 1, cost: 18000.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 1, cost: 1200.00 },
+                    "Water//Equipment": { cases: 0, cost: 0.00 },
+                    "Other Equipment": { cases: 0, cost: 0.00 }
+                }
+            },
+            "Week 30": { rec: 43, valid: 31, comp: 20, sla: "98.15%", amount: 53365.00, pcmCases: 12, pcmCost: 53365.00, llCases: 8, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 1, cost: 9200.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 0, cost: 0.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 9, cost: 39515.00 },
+                    "Water//Equipment": { cases: 2, cost: 4650.00 },
+                    "Other Equipment": { cases: 0, cost: 0.00 }
+                }
+            },
+            "Week 31": { rec: 67, valid: 41, comp: 13, sla: "100.00%", amount: 84904.16, pcmCases: 22, pcmCost: 84904.16, llCases: 0, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 1, cost: 3430.00 },
+                    "Property Safety Issues": { cases: 2, cost: 14000.00 },
+                    "Animal Issues": { cases: 1, cost: 869.16 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 11, cost: 53890.00 },
+                    "Water//Equipment": { cases: 4, cost: 7015.00 },
+                    "Other Equipment": { cases: 2, cost: 5700.00 }
+                }
+            },
+            "Week 32": { rec: 52, valid: 41, comp: 25, sla: "100.00%", amount: 39000.00, pcmCases: 8, pcmCost: 38000.00, llCases: 17, llCost: 1000.00,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 3, cost: 15500.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 1, cost: 1000.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 1, cost: 8000.00 },
+                    "Water//Equipment": { cases: 1, cost: 2500.00 },
+                    "Other Equipment": { cases: 2, cost: 12000.00 }
+                }
+            },
+            "Week 33": { rec: 37, valid: 23, comp: 18, sla: "98.00%", amount: 110536.00, pcmCases: 17, pcmCost: 110536.00, llCases: 1, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 2, cost: 58000.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 11, cost: 44536.00 },
+                    "Water//Equipment": { cases: 3, cost: 8000.00 },
+                    "Other Equipment": { cases: 0, cost: 0.00 }
+                }
+            },
+            "Week 34": { rec: 61, valid: 38, comp: 18, sla: "95.65%", amount: 57254.00, pcmCases: 13, pcmCost: 57254.00, llCases: 5, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 1, cost: 4700.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 2, cost: 23750.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 6, cost: 19950.00 },
+                    "Water//Equipment": { cases: 3, cost: 7854.00 },
+                    "Other Equipment": { cases: 1, cost: 1000.00 }
+                }
+            },
+            "Week 35": { rec: 48, valid: 35, comp: 27, sla: "100.00%", amount: 88074.72, pcmCases: 13, pcmCost: 77074.72, llCases: 14, llCost: 11000.00,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 2, cost: 26900.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 6, cost: 24400.00 },
+                    "Water//Equipment": { cases: 3, cost: 14574.72 },
+                    "Other Equipment": { cases: 2, cost: 22200.00 }
+                }
+            },
+            "Week 36": { rec: 35, valid: 26, comp: 18, sla: "98.55%", amount: 117804.72, pcmCases: 14, pcmCost: 117804.72, llCases: 4, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 1, cost: 3000.00 },
+                    "Property Structural Issues": { cases: 1, cost: 2774.72 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 5, cost: 93400.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 2, cost: 6720.00 },
+                    "Water//Equipment": { cases: 3, cost: 3470.00 },
+                    "Other Equipment": { cases: 2, cost: 8440.00 }
+                }
+            },
+            "Week 37": { rec: 62, valid: 40, comp: 21, sla: "100.00%", amount: 30455.00, pcmCases: 12, pcmCost: 30455.00, llCases: 9, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 1, cost: 2700.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 3, cost: 5005.00 },
+                    "Water//Equipment": { cases: 3, cost: 10950.00 },
+                    "Other Equipment": { cases: 2, cost: 11800.00 }
+                }
+            },
+            "Week 38": { rec: 39, valid: 28, comp: 27, sla: "94.12%", amount: 83822.43, pcmCases: 10, pcmCost: 83822.43, llCases: 17, llCost: 0,
+                types: {
+                    "Leaking water": { cases: 0, cost: 0.00 },
+                    "Property Structural Issues": { cases: 0, cost: 0.00 },
+                    "Electrical Issues": { cases: 0, cost: 0.00 },
+                    "Property Safety Issues": { cases: 5, cost: 70900.00 },
+                    "Animal Issues": { cases: 0, cost: 0.00 },
+                    "Facilities": { cases: 0, cost: 0.00 },
+                    "MEA/PEA/PWA": { cases: 0, cost: 0.00 },
+                    "CCTV": { cases: 0, cost: 0.00 },
+                    "Equipment Breakdown": { cases: 0, cost: 0.00 },
+                    "Environment": { cases: 0, cost: 0.00 },
+                    "Electrical//Equipment": { cases: 4, cost: 7922.43 },
+                    "Water//Equipment": { cases: 1, cost: 5000.00 },
+                    "Other Equipment": { cases: 0, cost: 0.00 }
+                }
+            },
+            "Week 39": { rec: 34, valid: 30, comp: 23, sla: "81.25%", amount: 150000.00, pcmCases: 22, pcmCost: 150000.00, llCases: 1, llCost: 0,
+                types: {
+                    "Property Safety Issues": { cases: 8, cost: 85000.00 },
+                    "Electrical//Equipment": { cases: 10, cost: 45000.00 },
+                    "Water//Equipment": { cases: 4, cost: 20000.00 }
+                }
+            },
+            "Week 40": { rec: 30, valid: 27, comp: 34, sla: "74.00%", amount: 135000.00, pcmCases: 11, pcmCost: 135000.00, llCases: 23, llCost: 0,
+                types: {
+                    "Property Safety Issues": { cases: 4, cost: 60000.00 },
+                    "Electrical//Equipment": { cases: 5, cost: 50000.00 },
+                    "Equipment Breakdown": { cases: 2, cost: 25000.00 }
+                }
+            }
         };
 
         let currentFilter = 'ALL';
@@ -197,22 +430,54 @@
             const formattedAmount = '฿' + displayAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('kpi-amount').innerText = formattedAmount;
 
-            document.getElementById('pcm-cases').innerText = data.pcmCases + ' เคส';
-            document.getElementById('pcm-cost').innerText = '฿' + data.pcmCost.toLocaleString('th-TH', { minimumFractionDigits: 2 });
-            
-            document.getElementById('ll-cases').innerText = data.llCases + ' เคส';
-            document.getElementById('ll-cost').innerText = '฿' + data.llCost.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+            renderTypeTable();
+            updateChart();
+        }
 
-            const totalCases = data.pcmCases + data.llCases;
-            if (totalCases > 0) {
-                document.getElementById('pcm-ratio').innerText = ((data.pcmCases / totalCases) * 100).toFixed(1) + '%';
-                document.getElementById('ll-ratio').innerText = ((data.llCases / totalCases) * 100).toFixed(1) + '%';
-            } else {
-                document.getElementById('pcm-ratio').innerText = '0%';
-                document.getElementById('ll-ratio').innerText = '0%';
+        // ฟังก์ชันสร้างตาราง Incident Type Breakdown
+        function renderTypeTable() {
+            const selectedWeek = document.getElementById('weekSelect').value || weeks[weeks.length - 1];
+            const selectedTypeFilter = document.getElementById('typeFilter').value;
+            const weekData = rawData[selectedWeek];
+
+            const tbody = document.getElementById('typeTableBody');
+            tbody.innerHTML = '';
+
+            if (!weekData || !weekData.types) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">ไม่มีข้อมูลประเภทปัญหาในสัปดาห์นี้</td></tr>';
+                return;
             }
 
-            updateChart();
+            let totalCasesSum = 0;
+            let totalCostSum = weekData.pcmCost || weekData.amount || 1;
+
+            // คํานวณยอดรวมเพื่อคิด %
+            Object.keys(weekData.types).forEach(type => {
+                totalCasesSum += weekData.types[type].cases || 0;
+            });
+
+            let filteredTypes = Object.keys(weekData.types);
+            if (selectedTypeFilter !== 'ALL') {
+                filteredTypes = filteredTypes.filter(t => t === selectedTypeFilter);
+            }
+
+            filteredTypes.forEach(typeKey => {
+                const item = weekData.types[typeKey] || { cases: 0, cost: 0 };
+                const pct = totalCostSum > 0 ? ((item.cost / totalCostSum) * 100).toFixed(1) : '0.0';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-slate-800">${typeKey}</td>
+                    <td class="py-3 px-4 text-center font-semibold ${item.cases > 0 ? 'text-blue-600' : 'text-slate-400'}">${item.cases}</td>
+                    <td class="py-3 px-4 text-right font-bold ${item.cost > 0 ? 'text-slate-800' : 'text-slate-400'}">฿${item.cost.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <td class="py-3 px-4 text-right font-medium text-slate-500">${pct}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('typeTotalCases').innerText = totalCasesSum;
+            document.getElementById('typeTotalCost').innerText = '฿' + (weekData.pcmCost || weekData.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 });
         }
 
         function updateChart() {
@@ -269,7 +534,7 @@
             });
         }
 
-        // ตัวเริ่มต้นการทำงานเมื่อโหลดหน้าเว็บเรียบร้อย
+        // ตัวเริ่มต้นการทำงาน
         window.addEventListener('DOMContentLoaded', () => {
             const weekSelect = document.getElementById('weekSelect');
             weekSelect.innerHTML = '';
@@ -278,8 +543,17 @@
                 const opt = document.createElement('option');
                 opt.value = wk;
                 opt.innerText = wk;
-                if (index === weeks.length - 1) opt.selected = true; // เลือกสัปดาห์ล่าสุดให้อัตโนมัติ
+                if (wk === "Week 40") opt.selected = true;
                 weekSelect.appendChild(opt);
+            });
+
+            // โหลดตัวเลือก Type Filter Dropdown
+            const typeFilter = document.getElementById('typeFilter');
+            incidentTypesList.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.innerText = t;
+                typeFilter.appendChild(opt);
             });
 
             updateDashboard();
