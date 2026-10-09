@@ -1,0 +1,282 @@
+require("dotenv").config();
+const express = require("express");
+const helmet = require("helmet");
+const session = require("express-session");
+const PgSession = require("connect-pg-simple")(session);
+const { Pool } = require("pg");
+const bcrypt = require("bcryptjs");
+const { google } = require("googleapis");
+const rateLimit = require("express-rate-limit");
+const path = require("path");
+const crypto = require("crypto");
+
+const app = express();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+});
+const PORT = process.env.PORT || 3000;
+
+app.set("trust proxy", 1);
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  store: new PgSession({ pool, createTableIfMissing: true }),
+  name: "spx_hm_session",
+  secret: process.env.SESSION_SECRET || "development-only-change-me",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",
+    maxAge: 8 * 60 * 60 * 1000
+  }
+}));
+
+const publicDir = path.join(__dirname, "public");
+app.use(express.static(publicDir));
+app.use("/api", rateLimit({ windowMs: 60 * 1000, limit: 90, standardHeaders: true, legacyHeaders: false }));
+
+function adminOnly(req, res, next) {
+  if (req.session && req.session.isAdmin) return next();
+  return res.status(401).json({ error: "Admin login required" });
+}
+function clean(v, max = 500) {
+  return String(v ?? "").trim().replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").slice(0, max);
+}
+function makeTicketNo() {
+  const date = new Date();
+  const ymd = `${date.getFullYear()}${String(date.getMonth()+1).padStart(2,"0")}${String(date.getDate()).padStart(2,"0")}`;
+  return `HM-${ymd}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+}
+
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets (
+      id BIGSERIAL PRIMARY KEY,
+      ticket_no TEXT UNIQUE NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      hub_code TEXT NOT NULL,
+      requester_name TEXT NOT NULL,
+      requester_email TEXT,
+      category TEXT NOT NULL,
+      priority TEXT NOT NULL DEFAULT 'P2',
+      description TEXT NOT NULL,
+      contact_phone TEXT,
+      status TEXT NOT NULL DEFAULT 'Not Started',
+      responsible_team TEXT NOT NULL DEFAULT 'FCM',
+      admin_note TEXT,
+      sheets_synced_at TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS tickets_created_at_idx ON tickets(created_at DESC);
+    CREATE INDEX IF NOT EXISTS tickets_status_idx ON tickets(status);
+    CREATE INDEX IF NOT EXISTS tickets_hub_idx ON tickets(hub_code);
+  `);
+}
+
+let sheetsClientPromise;
+async function sheetsClient() {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON || !process.env.GOOGLE_SHEET_ID) {
+    throw new Error("Google Sheets credentials are not configured");
+  }
+  if (!sheetsClientPromise) {
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    });
+    sheetsClientPromise = google.sheets({ version: "v4", auth });
+  }
+  return sheetsClientPromise;
+}
+async function appendTicketToSheet(t) {
+  const sheets = await sheetsClient();
+  const range = process.env.GOOGLE_WRITE_RANGE || "'WebApp Tickets'!A:K";
+  const values = [[
+    t.ticket_no, new Date(t.created_at).toISOString(), t.hub_code,
+    t.requester_name, t.requester_email || "", t.category, t.priority,
+    t.description, t.contact_phone || "", t.status, t.responsible_team
+  ]];
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range,
+    valueInputOption: "USER_ENTERED",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values }
+  });
+  await pool.query("UPDATE tickets SET sheets_synced_at = NOW() WHERE id = $1", [t.id]);
+}
+function mapSheetRows(values) {
+  if (!values || values.length < 2) return [];
+  const headers = values[0].map(h => String(h || "").trim().toLowerCase());
+  const pick = (row, names) => {
+    const i = headers.findIndex(h => names.includes(h));
+    return i >= 0 ? String(row[i] ?? "").trim() : "";
+  };
+  return values.slice(1).filter(row => row.some(v => String(v ?? "").trim())).map(row => ({
+    hub_code: pick(row, ["hub code", "hub_code", "hub"]),
+    status: pick(row, ["status", "maintenance status"]),
+    priority: pick(row, ["priority", "maintenance priority"]),
+    category: pick(row, ["category", "issue type", "repair type"]),
+    description: pick(row, ["description", "issue description", "problem", "detail"]),
+    responsible_team: pick(row, ["responsible", "responsible team", "team"])
+  }));
+}
+
+app.get("/api/health", async (req, res) => {
+  try { await pool.query("SELECT 1"); res.json({ ok: true, database: "connected" }); }
+  catch { res.status(503).json({ ok: false, database: "unavailable" }); }
+});
+
+app.post("/api/tickets", async (req, res) => {
+  const hub = clean(req.body.hub_code, 40).toUpperCase();
+  const name = clean(req.body.requester_name, 120);
+  const email = clean(req.body.requester_email, 180);
+  const category = clean(req.body.category, 100);
+  const priority = ["P0", "P1", "P2"].includes(req.body.priority) ? req.body.priority : "P2";
+  const description = clean(req.body.description, 4000);
+  const phone = clean(req.body.contact_phone, 40);
+  if (!hub || !name || !category || description.length < 5) {
+    return res.status(400).json({ error: "กรุณากรอก Hub Code, ชื่อผู้แจ้ง, ประเภทงาน และรายละเอียดอย่างน้อย 5 ตัวอักษร" });
+  }
+  try {
+    const ticketNo = makeTicketNo();
+    const result = await pool.query(
+      `INSERT INTO tickets (ticket_no, hub_code, requester_name, requester_email, category, priority, description, contact_phone)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [ticketNo, hub, name, email || null, category, priority, description, phone || null]
+    );
+    const ticket = result.rows[0];
+    let sheetSync = "pending";
+    try { await appendTicketToSheet(ticket); sheetSync = "synced"; }
+    catch (err) { console.error("Sheets append failed:", err.message); }
+    res.status(201).json({ ticket_no: ticket.ticket_no, status: ticket.status, sheet_sync: sheetSync });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "บันทึก Ticket ไม่สำเร็จ กรุณาลองใหม่" });
+  }
+});
+
+app.get("/api/tickets/track/:ticketNo", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT ticket_no, created_at, hub_code, category, priority, description, status, responsible_team FROM tickets WHERE ticket_no = $1",
+      [clean(req.params.ticketNo, 80)]
+    );
+    if (!result.rowCount) return res.status(404).json({ error: "ไม่พบ Ticket นี้ในระบบ" });
+    res.json(result.rows[0]);
+  } catch { res.status(500).json({ error: "ค้นหา Ticket ไม่สำเร็จ" }); }
+});
+
+app.post("/api/admin/login", rateLimit({ windowMs: 15 * 60 * 1000, limit: 8 }), async (req, res) => {
+  const username = clean(req.body.username, 100);
+  const password = String(req.body.password || "");
+  const expectedUser = process.env.ADMIN_USERNAME || "";
+  const hash = process.env.ADMIN_PASSWORD_HASH || "";
+  const configuredPassword = process.env.ADMIN_PASSWORD || "";
+  let passwordOk = false;
+  if (hash) {
+    passwordOk = await bcrypt.compare(password, hash);
+  } else if (configuredPassword) {
+    const supplied = Buffer.from(password);
+    const expected = Buffer.from(configuredPassword);
+    passwordOk = supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
+  }
+  if (!expectedUser || (!hash && !configuredPassword) || username !== expectedUser || !passwordOk) {
+    return res.status(401).json({ error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+  }
+  req.session.regenerate(err => {
+    if (err) return res.status(500).json({ error: "เข้าสู่ระบบไม่สำเร็จ" });
+    req.session.isAdmin = true;
+    req.session.adminUser = username;
+    res.json({ ok: true, username });
+  });
+});
+app.post("/api/admin/logout", adminOnly, (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
+app.get("/api/admin/me", adminOnly, (req, res) => res.json({ ok: true, username: req.session.adminUser }));
+
+app.get("/api/admin/tickets", adminOnly, async (req, res) => {
+  try {
+    const q = clean(req.query.q, 120);
+    const status = clean(req.query.status, 60);
+    const values = [];
+    let where = [];
+    if (q) { values.push(`%${q}%`); where.push(`(ticket_no ILIKE $${values.length} OR hub_code ILIKE $${values.length} OR requester_name ILIKE $${values.length})`); }
+    if (status) { values.push(status); where.push(`status = $${values.length}`); }
+    const sql = `SELECT * FROM tickets ${where.length ? "WHERE "+where.join(" AND ") : ""} ORDER BY created_at DESC LIMIT 500`;
+    const result = await pool.query(sql, values);
+    const stats = await pool.query(`SELECT COUNT(*)::int AS total,
+      COUNT(*) FILTER (WHERE status = 'Not Started')::int AS not_started,
+      COUNT(*) FILTER (WHERE status = 'In Progress')::int AS in_progress,
+      COUNT(*) FILTER (WHERE status = 'Done')::int AS done FROM tickets`);
+    res.json({ tickets: result.rows, stats: stats.rows[0] });
+  } catch (err) { console.error(err); res.status(500).json({ error: "โหลดรายการไม่สำเร็จ" }); }
+});
+
+app.patch("/api/admin/tickets/:id", adminOnly, async (req, res) => {
+  const id = Number(req.params.id);
+  const status = clean(req.body.status, 60);
+  const team = clean(req.body.responsible_team, 80);
+  const note = clean(req.body.admin_note, 2000);
+  if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: "Ticket ID ไม่ถูกต้อง" });
+  if (!["Not Started", "In Progress", "Done", "Tracking", "Cancel", "Move to Improvement", "Out of scope"].includes(status)) {
+    return res.status(400).json({ error: "สถานะไม่ถูกต้อง" });
+  }
+  try {
+    const result = await pool.query(
+      "UPDATE tickets SET status=$1, responsible_team=$2, admin_note=$3 WHERE id=$4 RETURNING *",
+      [status, team || "FCM", note, id]
+    );
+    if (!result.rowCount) return res.status(404).json({ error: "ไม่พบ Ticket" });
+    // Update only the dedicated WebApp Tickets tab by ticket number; original maintenance sheet is never modified.
+    try {
+      const sheets = await sheetsClient();
+      const range = process.env.GOOGLE_WRITE_RANGE || "'WebApp Tickets'!A:K";
+      const values = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.GOOGLE_SHEET_ID, range });
+      const rows = values.data.values || [];
+      const rowIndex = rows.findIndex((r, i) => i > 0 && String(r[0]) === result.rows[0].ticket_no);
+      if (rowIndex > 0) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: process.env.GOOGLE_SHEET_ID,
+          range: `'WebApp Tickets'!J${rowIndex+1}:K${rowIndex+1}`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [[status, team || "FCM"]] }
+        });
+        await pool.query("UPDATE tickets SET sheets_synced_at=NOW() WHERE id=$1", [id]);
+      }
+    } catch (err) { console.error("Sheets status update failed:", err.message); }
+    res.json({ ticket: result.rows[0] });
+  } catch (err) { console.error(err); res.status(500).json({ error: "อัปเดต Ticket ไม่สำเร็จ" }); }
+});
+
+app.post("/api/admin/import-sheet", adminOnly, async (req, res) => {
+  try {
+    const sheets = await sheetsClient();
+    const range = process.env.GOOGLE_SOURCE_RANGE;
+    if (!range) return res.status(400).json({ error: "ตั้งค่า GOOGLE_SOURCE_RANGE ใน Environment ก่อน" });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID, range
+    });
+    const mapped = mapSheetRows(response.data.values || []);
+    res.json({
+      source_range: range,
+      rows_found: mapped.length,
+      preview: mapped.slice(0, 15),
+      note: "ตัวอย่างการอ่านข้อมูลเพื่อยืนยัน mapping เท่านั้น ยังไม่ได้นำเข้าฐานข้อมูล เพราะต้องยืนยันหัวคอลัมน์และกติกา Ticket ID ก่อน"
+    });
+  } catch (err) {
+    console.error("Sheet import preview failed:", err.message);
+    res.status(500).json({ error: "อ่าน Google Sheets ไม่สำเร็จ ตรวจสอบชื่อแท็บ สิทธิ์แชร์ และ Credentials" });
+  }
+});
+
+app.get("*", (req, res) => res.sendFile(path.join(publicDir, "index.html")));
+
+initDb().then(() => {
+  app.listen(PORT, () => console.log(`SPX Hub Maintenance listening on ${PORT}`));
+}).catch(err => {
+  console.error("Database initialization failed:", err);
+  process.exit(1);
+});
