@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SPX Hub Maintenance | แจ้งซ่อม</title><link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar"><div class="brand"><div class="logo">SPX</div><div><strong>Hub Maintenance</strong><small>ระบบแจ้งซ่อมและติดตามงาน</small></div></div><a class="text-link" href="/admin.html">สำหรับ Admin ↗</a></header>
+<main class="container">
+  <section class="hero"><span class="eyebrow">MAINTENANCE PORTAL</span><h1>แจ้งซ่อมได้ในที่เดียว</h1><p>กรอกรายละเอียดปัญหาเพื่อสร้าง Ticket และใช้เลข Ticket ติดตามสถานะ</p></section>
+  <div class="layout">
+    <section class="panel"><div class="panel-head"><div><h2>แบบฟอร์มแจ้งซ่อม</h2><p>กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน</p></div><span class="pill">New request</span></div>
+      <form id="ticketForm">
+        <div class="form-grid">
+          <label>Hub Code <b>*</b><input name="hub_code" placeholder="เช่น SMHA002" required maxlength="40"></label>
+          <label>ชื่อผู้แจ้ง <b>*</b><input name="requester_name" placeholder="ชื่อ-นามสกุล" required maxlength="120"></label>
+          <label>อีเมลผู้แจ้ง<input name="requester_email" type="email" placeholder="name@company.com"></label>
+          <label>เบอร์ติดต่อ<input name="contact_phone" placeholder="เบอร์ติดต่อกลับ"></label>
+          <label>ประเภทงานซ่อม <b>*</b><select name="category" required><option value="">เลือกประเภทงาน</option><option>Electrical / Lighting</option><option>Air Conditioner</option><option>Roof / Water Leak</option><option>Plumbing / Toilet</option><option>Shutter Door</option><option>Water Pump / Tank</option><option>Building / Structure</option><option>Other</option></select></label>
+          <label>Priority<select name="priority"><option value="P2">P2 — Normal</option><option value="P1">P1 — High</option><option value="P0">P0 — Urgent</option></select></label>
+          <label class="full">รายละเอียดปัญหา <b>*</b><textarea name="description" rows="5" placeholder="อธิบายอาการ จุดที่พบ และผลกระทบ..." required minlength="5" maxlength="4000"></textarea></label>
+        </div>
+        <button class="primary" type="submit" id="submitBtn">ส่งคำขอแจ้งซ่อม <span>→</span></button><p class="form-note">ระบบจะสร้างเลข Ticket หลังบันทึกสำเร็จ</p>
+      </form><div id="formResult" class="notice hidden" role="status"></div>
+    </section>
+    <aside class="panel track-panel"><div class="icon-bubble">⌕</div><h2>ติดตาม Ticket</h2><p>มีเลข Ticket แล้วใช่ไหม? กรอกเลขเพื่อดูสถานะล่าสุด</p><form id="trackForm"><label>Ticket Number<input name="ticket_no" placeholder="เช่น HM-20261009-ABC123" required></label><button class="secondary" type="submit">ตรวจสอบสถานะ</button></form><div id="trackResult"></div><div class="help-box"><strong>ต้องการความช่วยเหลือ?</strong><span>โปรดเก็บเลข Ticket ไว้สำหรับติดตามงาน</span></div></aside>
+  </div>
+  <footer>SPX · Hub Maintenance <span>Maintenance request portal</span></footer>
+</main><script src="/app.js"></script>
+</body></html>
